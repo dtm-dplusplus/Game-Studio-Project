@@ -1,0 +1,19 @@
+*
+!*/
+!/.git*
+
+# Do not ignore current project's `.uproject`.
+!*/*.uproject
+
+# Do not ignore source, config and plugins dirs.
+!*/Source/**
+!*/Saved/Config/**
+!*/Config/**
+!*/Plugins/**
+
+!*/Content/**
+
+*/Saved/Config/CrashReportClient/**
+
+# Visual Studio
+*/.vs
