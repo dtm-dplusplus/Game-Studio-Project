@@ -2,4 +2,4 @@
 * text=auto
 
 # Add this when we start adding assets
- #ToonTanks/Content/Assets/** filter=lfs diff=lfs merge=lfs -text
+GSP/Content/Assets/** filter=lfs diff=lfs merge=lfs -text
