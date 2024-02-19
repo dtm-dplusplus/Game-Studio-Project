@@ -9,6 +9,9 @@
 
 class UInputAction;
 
+// Declare a new log category
+DECLARE_LOG_CATEGORY_EXTERN(GSPCharacter, Log, All);
+
 UCLASS(config = Game)
 class GSP_API AGSPCharacter : public ACharacter
 {
@@ -38,6 +41,10 @@ class GSP_API AGSPCharacter : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* LookAction;
 
+	/** Use Ability Input Action*/
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* UseAbilityAction;
+
 	/* Ability Component */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GSP|Ability", meta = (AllowPrivateAccess = "true"))
 	class UGSPAbilityComponent* AbilityComponent;
@@ -52,12 +59,21 @@ protected:
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
 
+	/** Called for jumping input */
+	void Jump() override;
+
+	/** Called to Stop Jumping*/
+	void StopJumping() override;
+
+	/** Called for using elemental ability input */
+	void UseAbility();
+
 protected:
 	// APawn interface
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
 	// To add mapping context
-	virtual void BeginPlay() override;
+	void BeginPlay() override;
 
 public:
 	/** Returns CameraBoom subobject **/

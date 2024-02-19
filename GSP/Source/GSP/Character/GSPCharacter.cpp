@@ -11,6 +11,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "GSPAbilityComponent.h"
 
+DEFINE_LOG_CATEGORY(GSPCharacter);
 // Sets default values
 
 AGSPCharacter::AGSPCharacter()
@@ -74,8 +75,8 @@ void AGSPCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent)) {
 
 		//Jumping
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &AGSPCharacter::Jump);
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &AGSPCharacter::StopJumping);
 
 		//Moving
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AGSPCharacter::Move);
@@ -83,8 +84,11 @@ void AGSPCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 		//Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AGSPCharacter::Look);
 
+		// Ability
+		EnhancedInputComponent->BindAction(UseAbilityAction, ETriggerEvent::Triggered, this, &AGSPCharacter::UseAbility);
+	
+		UE_LOG(GSPCharacter, Log, TEXT("SetupPlayerInputComponent"));
 	}
-
 }
 
 void AGSPCharacter::Move(const FInputActionValue& Value)
@@ -107,6 +111,8 @@ void AGSPCharacter::Move(const FInputActionValue& Value)
 		// add movement 
 		AddMovementInput(ForwardDirection, MovementVector.Y);
 		AddMovementInput(RightDirection, MovementVector.X);
+
+		// UE_LOG(Character, Log, TEXT("Move Input X: %f Y: %f"), MovementVector.X, MovementVector.Y);
 	}
 }
 
@@ -120,5 +126,25 @@ void AGSPCharacter::Look(const FInputActionValue& Value)
 		// add yaw and pitch input to controller
 		AddControllerYawInput(LookAxisVector.X);
 		AddControllerPitchInput(LookAxisVector.Y);
+
+		// UE_LOG(GSPCharacter, Log, TEXT("Look Input X: %f Y: %f"), LookAxisVector.X, LookAxisVector.Y);
 	}
+}
+
+void AGSPCharacter::Jump()
+{
+	Super::Jump();
+
+	UE_LOG(GSPCharacter, Log, TEXT("Jump"));
+}
+
+void AGSPCharacter::StopJumping()
+{
+	Super::StopJumping();
+}
+
+void AGSPCharacter::UseAbility()
+{
+	UE_LOG(GSPCharacter, Log, TEXT("UseAbility Character"));
+	AbilityComponent->UseAbility();
 }

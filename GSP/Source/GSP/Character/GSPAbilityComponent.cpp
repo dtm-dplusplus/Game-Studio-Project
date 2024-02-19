@@ -2,6 +2,9 @@
 
 
 #include "GSPAbilityComponent.h"
+#include "kismet/GameplayStatics.h"
+
+DEFINE_LOG_CATEGORY(GSPAbility);
 
 // Sets default values for this component's properties
 UGSPAbilityComponent::UGSPAbilityComponent()
@@ -13,6 +16,8 @@ UGSPAbilityComponent::UGSPAbilityComponent()
 	// ...
 	
 }
+
+
 
 
 // Called when the game starts
@@ -31,4 +36,9 @@ void UGSPAbilityComponent::TickComponent(float DeltaTime, ELevelTick TickType, F
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	// ...
+}
+
+void UGSPAbilityComponent::UseAbility()
+{
+	UE_LOG(GSPAbility, Warning, TEXT("UseAbility UGSPAbilityComponent"));
 }
