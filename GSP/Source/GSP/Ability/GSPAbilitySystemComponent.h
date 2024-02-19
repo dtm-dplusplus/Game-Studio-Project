@@ -13,5 +13,10 @@ UCLASS()
 class GSP_API UGSPAbilitySystemComponent : public UAbilitySystemComponent
 {
 	GENERATED_BODY()
-	
+
+public:
+	UGSPAbilitySystemComponent();
+
+protected:
+	void BeginPlay() override;
 };

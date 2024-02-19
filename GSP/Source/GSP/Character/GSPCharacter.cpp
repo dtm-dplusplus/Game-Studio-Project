@@ -10,11 +10,13 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "../Ability/GSPAbilitySystemComponent.h"
+#include "../Ability/GSPGlobalAbilitySystem.h"
 
 DEFINE_LOG_CATEGORY(GSPCharacter);
 // Sets default values
 
-AGSPCharacter::AGSPCharacter()
+AGSPCharacter::AGSPCharacter(const FObjectInitializer& ObjectInitializer):
+	Super(ObjectInitializer)
 {
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
@@ -51,7 +53,13 @@ AGSPCharacter::AGSPCharacter()
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
 
 	// Set up Abilities
-	_AbilitySystemComponent = CreateDefaultSubobject<UGSPAbilitySystemComponent>(TEXT("AbilityComponent"));
+	_AbilitySystemComponent = CreateDefaultSubobject<UGSPAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
+
+	// AbilitySystemComponent needs to be updated at a high frequency.
+	NetUpdateFrequency = 100.0f;
+
+	// Set up Tags
+	_DeadTag = FGameplayTag::RequestGameplayTag("State.Dead");
 }
 
 void AGSPCharacter::BeginPlay()
@@ -95,6 +103,8 @@ UAbilitySystemComponent* AGSPCharacter::GetAbilitySystemComponent() const
 {
 	return nullptr;
 }
+
+
 
 void AGSPCharacter::Move(const FInputActionValue& Value)
 {
