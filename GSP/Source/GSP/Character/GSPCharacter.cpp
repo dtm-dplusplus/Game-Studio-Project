@@ -39,15 +39,15 @@ AGSPCharacter::AGSPCharacter(const FObjectInitializer& ObjectInitializer):
 	GetCharacterMovement()->BrakingDecelerationWalking = 2000.f;
 
 	// Create a camera boom (pulls in towards the player if there is a collision)
-	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
-	CameraBoom->SetupAttachment(RootComponent);
-	CameraBoom->TargetArmLength = 400.0f; // The camera follows at this distance behind the character	
-	CameraBoom->bUsePawnControlRotation = true; // Rotate the arm based on the controller
-
+	_CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
+	_CameraBoom->SetupAttachment(RootComponent);
+	_CameraBoom->TargetArmLength = 400.0f; // The camera follows at this distance behind the character	
+	_CameraBoom->bUsePawnControlRotation = true; // Rotate the arm based on the controller
+	
 	// Create a follow camera
-	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
-	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
-	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
+	_FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
+	_FollowCamera->SetupAttachment(_CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
+	_FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
@@ -72,7 +72,7 @@ void AGSPCharacter::BeginPlay()
 	{
 		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
 		{
-			Subsystem->AddMappingContext(DefaultMappingContext, 0);
+			Subsystem->AddMappingContext(_DefaultMappingContext, 0);
 		}
 	}
 }
@@ -83,17 +83,17 @@ void AGSPCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent)) {
 
 		//Jumping
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &AGSPCharacter::Jump);
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &AGSPCharacter::StopJumping);
+		EnhancedInputComponent->BindAction(_JumpAction, ETriggerEvent::Triggered, this, &AGSPCharacter::Jump);
+		EnhancedInputComponent->BindAction(_JumpAction, ETriggerEvent::Completed, this, &AGSPCharacter::StopJumping);
 
 		//Moving
-		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AGSPCharacter::Move);
+		EnhancedInputComponent->BindAction(_MoveAction, ETriggerEvent::Triggered, this, &AGSPCharacter::Move);
 
 		//Looking
-		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AGSPCharacter::Look);
+		EnhancedInputComponent->BindAction(_LookAction, ETriggerEvent::Triggered, this, &AGSPCharacter::Look);
 
 		// Ability
-		EnhancedInputComponent->BindAction(UseAbilityAction, ETriggerEvent::Triggered, this, &AGSPCharacter::UseAbility);
+		EnhancedInputComponent->BindAction(_UseAbilityAction, ETriggerEvent::Triggered, this, &AGSPCharacter::UseAbility);
 	
 		UE_LOG(GSPCharacter, Log, TEXT("SetupPlayerInputComponent"));
 	}
