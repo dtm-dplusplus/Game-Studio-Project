@@ -38,6 +38,9 @@ class GSP_API AGSPCharacter : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* LookAction;
 
+	/* Ability Component */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GSP|Ability", meta = (AllowPrivateAccess = "true"))
+	class UGSPAbilityComponent* AbilityComponent;
 public:
 	AGSPCharacter();
 
