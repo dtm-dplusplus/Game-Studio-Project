@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "InputActionValue.h"
+#include "AbilitySystemInterface.h"
 #include "GSPCharacter.generated.h"
 
 class UInputAction;
@@ -13,7 +14,7 @@ class UInputAction;
 DECLARE_LOG_CATEGORY_EXTERN(GSPCharacter, Log, All);
 
 UCLASS(config = Game)
-class GSP_API AGSPCharacter : public ACharacter
+class GSP_API AGSPCharacter : public ACharacter, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 
@@ -47,7 +48,7 @@ class GSP_API AGSPCharacter : public ACharacter
 
 	/* Ability Component */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GSP|Ability", meta = (AllowPrivateAccess = "true"))
-	class UGSPAbilityComponent* AbilityComponent;
+	class UGSPAbilitySystemComponent* _AbilitySystemComponent;
 public:
 	AGSPCharacter();
 
@@ -72,7 +73,8 @@ protected:
 	// APawn interface
 	void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
-	// To add mapping context
+	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+
 	void BeginPlay() override;
 
 public:

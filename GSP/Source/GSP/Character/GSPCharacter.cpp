@@ -9,7 +9,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
-#include "GSPAbilityComponent.h"
+#include "../Ability/GSPAbilitySystemComponent.h"
 
 DEFINE_LOG_CATEGORY(GSPCharacter);
 // Sets default values
@@ -51,7 +51,7 @@ AGSPCharacter::AGSPCharacter()
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
 
 	// Set up Abilities
-	AbilityComponent = CreateDefaultSubobject<UGSPAbilityComponent>(TEXT("AbilityComponent"));
+	_AbilitySystemComponent = CreateDefaultSubobject<UGSPAbilitySystemComponent>(TEXT("AbilityComponent"));
 }
 
 void AGSPCharacter::BeginPlay()
@@ -89,6 +89,11 @@ void AGSPCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 	
 		UE_LOG(GSPCharacter, Log, TEXT("SetupPlayerInputComponent"));
 	}
+}
+
+UAbilitySystemComponent* AGSPCharacter::GetAbilitySystemComponent() const
+{
+	return nullptr;
 }
 
 void AGSPCharacter::Move(const FInputActionValue& Value)
@@ -146,5 +151,4 @@ void AGSPCharacter::StopJumping()
 void AGSPCharacter::UseAbility()
 {
 	UE_LOG(GSPCharacter, Log, TEXT("UseAbility Character"));
-	AbilityComponent->UseAbility();
 }
