@@ -8,6 +8,18 @@ UGSPGlobalAbilitySystem::UGSPGlobalAbilitySystem()
 {
 }
 
+void UGSPGlobalAbilitySystem::ApplyAbilityToAll(TSubclassOf<UGameplayAbility> Ability)
+{
+	for (UGSPAbilitySystemComponent* ASC : _ASCs)
+	{
+		ASC->GiveAbility(FGameplayAbilitySpec(Ability, 1, 0));
+	}
+}
+
+void UGSPGlobalAbilitySystem::ApplyEffectToAll(TSubclassOf<UGameplayEffect> Effect)
+{
+}
+
 void UGSPGlobalAbilitySystem::AddASC(UGSPAbilitySystemComponent* ASC)
 {
 	check(ASC);
@@ -15,7 +27,7 @@ void UGSPGlobalAbilitySystem::AddASC(UGSPAbilitySystemComponent* ASC)
 	// Apply Global Effects/Abilities
 	//....
 
-	ASCs.AddUnique(ASC);
+	_ASCs.AddUnique(ASC);
 }
 
 void UGSPGlobalAbilitySystem::RemoveASC(UGSPAbilitySystemComponent* ASC)
@@ -25,5 +37,5 @@ void UGSPGlobalAbilitySystem::RemoveASC(UGSPAbilitySystemComponent* ASC)
 	// Remove Global Effects/Abilities
 	// ....
 
-	ASCs.Remove(ASC);
+	_ASCs.Remove(ASC);
 }

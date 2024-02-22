@@ -6,6 +6,8 @@
 #include "Subsystems/WorldSubsystem.h"
 #include "GSPGlobalAbilitySystem.generated.h"
 
+class UGameplayAbility;
+class UGameplayEffect;
 class UGSPAbilitySystemComponent;
 /**
  * 
@@ -18,6 +20,12 @@ class GSP_API UGSPGlobalAbilitySystem : public UWorldSubsystem
 public:
 	UGSPGlobalAbilitySystem();
 
+	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category = "GSP")
+	void ApplyAbilityToAll(TSubclassOf<UGameplayAbility> Ability);
+
+	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category = "GSP")
+	void ApplyEffectToAll(TSubclassOf<UGameplayEffect> Effect);
+
 	/** Register an ASC with global system and apply any active global effects/abilities. */
 	void AddASC(UGSPAbilitySystemComponent* ASC);
 
@@ -28,5 +36,5 @@ private:
 
 	/** Ability System Compents added by their owning pawns */
 	UPROPERTY()
-	TArray<TObjectPtr<UGSPAbilitySystemComponent>> ASCs;
+	TArray<TObjectPtr<UGSPAbilitySystemComponent>> _ASCs;
 };

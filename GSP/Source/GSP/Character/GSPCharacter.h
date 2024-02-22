@@ -6,31 +6,60 @@
 #include "GameFramework/Character.h"
 #include "InputActionValue.h"
 #include "AbilitySystemInterface.h"
-#include "GameplayTagContainer.h"
+#include "GameplayTags/Classes/GameplayTagAssetInterface.h"
 #include "GSPCharacter.generated.h"
 
+class UGSPAbilitySystemComponent;
+class USpringArmComponent;
+class UCameraComponent;
 class UInputAction;
 
 // Declare a new log category
 DECLARE_LOG_CATEGORY_EXTERN(GSPCharacter, Log, All);
 
+/** Base class for all characters in the game */
 UCLASS(config = Game)
-class GSP_API AGSPCharacter : public ACharacter, public IAbilitySystemInterface
+class GSP_API AGSPCharacter : public ACharacter, public IAbilitySystemInterface, public IGameplayTagAssetInterface
 {
 	GENERATED_BODY()
 
-private:	
-    /** Camera boom positioning the camera behind the character */
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GSP|Camera", meta = (AllowPrivateAccess = "true"))
-    TObjectPtr<class USpringArmComponent> _CameraBoom;
+public:
+	AGSPCharacter(const FObjectInitializer& ObjectInitializer);
 
-    /** Follow camera */
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GSP|Camera", meta = (AllowPrivateAccess = "true"))
-    TObjectPtr<class UCameraComponent> _FollowCamera;
+	virtual void BeginPlay() override;
+
+	UFUNCTION(BlueprintCallable, Category = "GSP|Character")
+	APlayerController* GetGSPPlayerController() const;
+
+	UFUNCTION(BlueprintCallable, Category = "GSP|Character")
+	APlayerState* GetGSPPlayerState() const;
+
+	/** IAbilitySystemInterface */
+	UFUNCTION(BlueprintCallable, Category = "GSP|Character")
+	UGSPAbilitySystemComponent* GetGSPAbilitySystemComponent() const;
+	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+	/** End of IAbilitySystemInterface */
+
+	/** IGameplayTagAssetInterface */
+	UFUNCTION(BlueprintCallable, Category = "GSP|GameplayTags")
+	virtual void GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const override;
+
+	UFUNCTION(BlueprintCallable, Category = "GSP|GameplayTags")
+	virtual bool HasMatchingGameplayTag(FGameplayTag TagToCheck) const override;
+
+	UFUNCTION(BlueprintCallable, Category = "GSP|GameplayTags")
+	virtual bool HasAllMatchingGameplayTags(const FGameplayTagContainer& TagContainer) const override;
+
+	UFUNCTION(BlueprintCallable, Category = "GSP|GameplayTags")
+	virtual bool HasAnyMatchingGameplayTags(const FGameplayTagContainer& TagContainer) const override;
+	/** End of IGameplayTagAssetInterface */
+
+private:	
+    
 
     /** MappingContext */
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GSP|Input", meta = (AllowPrivateAccess = "true"))
-    TObjectPtr<class UInputMappingContext> _DefaultMappingContext;
+    TObjectPtr<class UInputMappingContext> _MappingContext;
 
     /** Jump Input Action */
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GSP|Input", meta = (AllowPrivateAccess = "true"))
@@ -44,23 +73,21 @@ private:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GSP|Input", meta = (AllowPrivateAccess = "true"))
     TObjectPtr<UInputAction> _LookAction;
 
-    /** Use Ability Input Action*/
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GSP|Input", meta = (AllowPrivateAccess = "true"))
-    TObjectPtr<UInputAction> _UseAbilityAction;
-
 	/* Ability Component */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GSP|Ability", meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<class UGSPAbilitySystemComponent> _AbilitySystemComponent;
+	UPROPERTY()
+	TObjectPtr<UGSPAbilitySystemComponent> _AbilitySystemComponent;
 
-public:
-	AGSPCharacter(const FObjectInitializer& ObjectInitializer);
+	/** Camera boom positioning the camera behind the character */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GSP|Camera", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<USpringArmComponent> _CameraBoom;
 
-	/** Returns CameraBoom subobject **/
-	FORCEINLINE USpringArmComponent* GetCameraBoom() const { return _CameraBoom; }
-	/** Returns FollowCamera subobject **/
-	FORCEINLINE UCameraComponent* GetFollowCamera() const { return _FollowCamera; }
+	/** Follow camera */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GSP|Camera", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UCameraComponent> _FollowCamera;
 
-	FGameplayTag _DeadTag;
+	/** Projectile Spawn Point */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GSP", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UArrowComponent> _ProjectileSpawnPoint;
 protected:
 
 	/** Called for movement input */
@@ -75,16 +102,19 @@ protected:
 	/** Called to Stop Jumping*/
 	void StopJumping() override;
 
-	/** Called for using elemental ability input */
-	void UseAbility();
-
-protected:
 	// APawn interface
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
-	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
-	virtual void BeginPlay() override;
+
+private:
+
+
+public:
+	/** Returns CameraBoom subobject **/
+	FORCEINLINE USpringArmComponent* GetCameraBoom() const { return _CameraBoom; }
+	/** Returns FollowCamera subobject **/
+	FORCEINLINE UCameraComponent* GetFollowCamera() const { return _FollowCamera; }
 };
 
 #pragma once

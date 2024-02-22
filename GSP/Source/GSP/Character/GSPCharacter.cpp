@@ -9,11 +9,11 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "Components/ArrowComponent.h"
 #include "../Ability/GSPAbilitySystemComponent.h"
-#include "../Ability/GSPGlobalAbilitySystem.h"
 
-DEFINE_LOG_CATEGORY(GSPCharacter);
-// Sets default values
+DEFINE_LOG_CATEGORY(GSPCharacter)
+
 
 AGSPCharacter::AGSPCharacter(const FObjectInitializer& ObjectInitializer):
 	Super(ObjectInitializer)
@@ -49,17 +49,15 @@ AGSPCharacter::AGSPCharacter(const FObjectInitializer& ObjectInitializer):
 	_FollowCamera->SetupAttachment(_CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
 	_FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 
-	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
-	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
+	// Create a projectile spawn point
+	_ProjectileSpawnPoint = CreateDefaultSubobject<UArrowComponent>(TEXT("ProjectileSpawnPoint"));
+	_ProjectileSpawnPoint->SetupAttachment(RootComponent);
 
 	// Set up Abilities
 	_AbilitySystemComponent = CreateDefaultSubobject<UGSPAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
 
 	// AbilitySystemComponent needs to be updated at a high frequency.
 	NetUpdateFrequency = 100.0f;
-
-	// Set up Tags
-	_DeadTag = FGameplayTag::RequestGameplayTag("State.Dead");
 }
 
 void AGSPCharacter::BeginPlay()
@@ -72,9 +70,67 @@ void AGSPCharacter::BeginPlay()
 	{
 		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
 		{
-			Subsystem->AddMappingContext(_DefaultMappingContext, 0);
+			Subsystem->AddMappingContext(_MappingContext, 0);
 		}
 	}
+}
+
+APlayerController* AGSPCharacter::GetGSPPlayerController() const
+{
+	return Cast<APlayerController>(GetController());
+}
+
+APlayerState* AGSPCharacter::GetGSPPlayerState() const
+{
+	return GetGSPPlayerController()->PlayerState;
+}
+
+UGSPAbilitySystemComponent* AGSPCharacter::GetGSPAbilitySystemComponent() const
+{
+	return Cast<UGSPAbilitySystemComponent>(GetAbilitySystemComponent());
+}
+
+UAbilitySystemComponent* AGSPCharacter::GetAbilitySystemComponent() const
+{
+	return _AbilitySystemComponent;
+}
+
+void AGSPCharacter::GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const
+{
+	if (_AbilitySystemComponent)
+	{
+		_AbilitySystemComponent->GetOwnedGameplayTags(TagContainer);
+	}
+}
+
+bool AGSPCharacter::HasMatchingGameplayTag(FGameplayTag TagToCheck) const
+{
+	if (_AbilitySystemComponent)
+	{
+		return _AbilitySystemComponent->HasMatchingGameplayTag(TagToCheck);
+	}
+
+	return false;
+}
+
+bool AGSPCharacter::HasAllMatchingGameplayTags(const FGameplayTagContainer& TagContainer) const
+{
+	if (_AbilitySystemComponent)
+	{
+		return _AbilitySystemComponent->HasAllMatchingGameplayTags(TagContainer);
+	}
+
+	return false;
+}
+
+bool AGSPCharacter::HasAnyMatchingGameplayTags(const FGameplayTagContainer& TagContainer) const
+{
+	if (_AbilitySystemComponent)
+	{
+		return _AbilitySystemComponent->HasAllMatchingGameplayTags(TagContainer);
+	}
+
+	return false;
 }
 
 void AGSPCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -91,19 +147,8 @@ void AGSPCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 
 		//Looking
 		EnhancedInputComponent->BindAction(_LookAction, ETriggerEvent::Triggered, this, &AGSPCharacter::Look);
-
-		// Ability
-		EnhancedInputComponent->BindAction(_UseAbilityAction, ETriggerEvent::Triggered, this, &AGSPCharacter::UseAbility);
-	
-		UE_LOG(GSPCharacter, Log, TEXT("SetupPlayerInputComponent"));
 	}
 }
-
-UAbilitySystemComponent* AGSPCharacter::GetAbilitySystemComponent() const
-{
-	return nullptr;
-}
-
 
 
 void AGSPCharacter::Move(const FInputActionValue& Value)
@@ -156,9 +201,4 @@ void AGSPCharacter::Jump()
 void AGSPCharacter::StopJumping()
 {
 	Super::StopJumping();
-}
-
-void AGSPCharacter::UseAbility()
-{
-	UE_LOG(GSPCharacter, Log, TEXT("UseAbility Character"));
 }

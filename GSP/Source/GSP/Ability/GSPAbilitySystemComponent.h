@@ -6,6 +6,8 @@
 #include "AbilitySystemComponent.h"
 #include "GSPAbilitySystemComponent.generated.h"
 
+DECLARE_LOG_CATEGORY_EXTERN(GSPAbility, Log, All);
+
 /**
  * 
  */
@@ -19,4 +21,7 @@ public:
 
 protected:
 	void BeginPlay() override;
+
+	FGameplayTagContainer _OwnedGameplayTags;
+
 };

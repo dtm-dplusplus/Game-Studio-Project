@@ -5,6 +5,8 @@
 
 #include "GSPGlobalAbilitySystem.h"
 
+DEFINE_LOG_CATEGORY(GSPAbility)
+
 UGSPAbilitySystemComponent::UGSPAbilitySystemComponent()
 {
 
