@@ -80,25 +80,35 @@ protected:
 
 	UFUNCTION(BlueprintPure, Category = "GSP|Ability|Attribute")
 	float GetCharacterMaxHealth() const;
-private:	
-    
+	
+	/** MappingContext */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GSP|Input", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class UInputMappingContext> _MappingContext;
 
-    /** MappingContext */
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GSP|Input", meta = (AllowPrivateAccess = "true"))
-    TObjectPtr<class UInputMappingContext> _MappingContext;
+	/** Jump Input Action */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GSP|Input", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UInputAction> _JumpAction;
 
-    /** Jump Input Action */
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GSP|Input", meta = (AllowPrivateAccess = "true"))
-    TObjectPtr<UInputAction> _JumpAction;
+	/** IA_Move Input Action */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GSP|Input", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UInputAction> _MoveAction;
 
-    /** Move Input Action */
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GSP|Input", meta = (AllowPrivateAccess = "true"))
-    TObjectPtr<UInputAction> _MoveAction;
+	/** IA_Look Input Action */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GSP|Input", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UInputAction> _LookAction;
 
-    /** Look Input Action */
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GSP|Input", meta = (AllowPrivateAccess = "true"))
-    TObjectPtr<UInputAction> _LookAction;
+	/** IA_Attack Input Action */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GSP|Input", meta = (AllowPrivate = "true"))
+	TObjectPtr<UInputAction> _AttackAction;
 
+	/** IA_Defend Input Action */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GSP|Input", meta = (AllowPrivate = "true"))
+	TObjectPtr<UInputAction> _DefendAction;
+
+	/** IA_Support Input Action */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GSP|Input", meta = (AllowPrivate = "true"))
+	TObjectPtr<UInputAction> _SupportAction;
+private:
 	/** Camera boom positioning the camera behind the character */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GSP|Camera", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<USpringArmComponent> _CameraBoom;
@@ -112,26 +122,31 @@ private:
 	TObjectPtr<UArrowComponent> _ProjectileSpawnPoint;
 
 protected:
-
-	/** Called for movement input */
-	virtual void Move(const FInputActionValue& Value);
-
-	/** Called for looking input */
-	virtual void Look(const FInputActionValue& Value);
+	/** APawn interface */
+	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
+	/** End of APawn interface */
 
 	/** Called for jumping input */
-	void Jump() override;
+	virtual void Jump() override;
+	virtual void StopJumping() override;
+
+	// Crouch to be implemented
+	//virtual void Crouch(bool bClientSimulation) override;
+
+	/** Called for movement input */
+	virtual void IA_Move(const FInputActionValue& Value);
+
+	/** Called for looking input */
+	virtual void IA_Look(const FInputActionValue& Value);
+
+	/** Called for Attack input*/
+	virtual void IA_Attack(const FInputActionValue& Value);
 	
-	/** Called to Stop Jumping*/
-	void StopJumping() override;
+	/** Called for Defend input*/
+	virtual void IA_Defend(const FInputActionValue& Value);
 
-	// APawn interface
-	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
-
-
-
-private:
-
+	/** Called for Support input*/
+	virtual void IA_Support(const FInputActionValue& Value);
 
 public:
 	/** Returns CameraBoom subobject **/

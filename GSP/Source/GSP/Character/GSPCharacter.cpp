@@ -193,6 +193,8 @@ float AGSPCharacter::GetCharacterMaxHealth() const
 
 void AGSPCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
+	Super::SetupPlayerInputComponent(PlayerInputComponent);
+
 	// Set up action bindings
 	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent)) {
 
@@ -201,15 +203,33 @@ void AGSPCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 		EnhancedInputComponent->BindAction(_JumpAction, ETriggerEvent::Completed, this, &AGSPCharacter::StopJumping);
 
 		//Moving
-		EnhancedInputComponent->BindAction(_MoveAction, ETriggerEvent::Triggered, this, &AGSPCharacter::Move);
+		EnhancedInputComponent->BindAction(_MoveAction, ETriggerEvent::Triggered, this, &AGSPCharacter::IA_Move);
 
 		//Looking
-		EnhancedInputComponent->BindAction(_LookAction, ETriggerEvent::Triggered, this, &AGSPCharacter::Look);
+		EnhancedInputComponent->BindAction(_LookAction, ETriggerEvent::Triggered, this, &AGSPCharacter::IA_Look);
+
+		// Abilities
+		EnhancedInputComponent->BindAction(_AttackAction, ETriggerEvent::Triggered, this, &AGSPCharacter::IA_Attack);
+		EnhancedInputComponent->BindAction(_DefendAction, ETriggerEvent::Triggered, this, &AGSPCharacter::IA_Defend);
+		EnhancedInputComponent->BindAction(_SupportAction, ETriggerEvent::Triggered, this, &AGSPCharacter::IA_Support);
 	}
 }
 
+void AGSPCharacter::Jump()
+{
+	Super::Jump();
 
-void AGSPCharacter::Move(const FInputActionValue& Value)
+	UE_LOG(GSPCharacter, Log, TEXT("Jump"));
+}
+
+void AGSPCharacter::StopJumping()
+{
+	Super::StopJumping();
+
+	UE_LOG(GSPCharacter, Log, TEXT("StopJumping"));
+}
+
+void AGSPCharacter::IA_Move(const FInputActionValue& Value)
 {
 	// input is a Vector2D
 	FVector2D MovementVector = Value.Get<FVector2D>();
@@ -230,11 +250,11 @@ void AGSPCharacter::Move(const FInputActionValue& Value)
 		AddMovementInput(ForwardDirection, MovementVector.Y);
 		AddMovementInput(RightDirection, MovementVector.X);
 
-		// UE_LOG(Character, Log, TEXT("Move Input X: %f Y: %f"), MovementVector.X, MovementVector.Y);
+		// UE_LOG(Character, Log, TEXT("IA_Move Input X: %f Y: %f"), MovementVector.X, MovementVector.Y);
 	}
 }
 
-void AGSPCharacter::Look(const FInputActionValue& Value)
+void AGSPCharacter::IA_Look(const FInputActionValue& Value)
 {
 	// input is a Vector2D
 	FVector2D LookAxisVector = Value.Get<FVector2D>();
@@ -245,18 +265,23 @@ void AGSPCharacter::Look(const FInputActionValue& Value)
 		AddControllerYawInput(LookAxisVector.X);
 		AddControllerPitchInput(LookAxisVector.Y);
 
-		// UE_LOG(GSPCharacter, Log, TEXT("Look Input X: %f Y: %f"), LookAxisVector.X, LookAxisVector.Y);
+		// UE_LOG(GSPCharacter, Log, TEXT("IA_Look Input X: %f Y: %f"), LookAxisVector.X, LookAxisVector.Y);
 	}
 }
 
-void AGSPCharacter::Jump()
+void AGSPCharacter::IA_Attack(const FInputActionValue& Value)
 {
-	Super::Jump();
-
-	UE_LOG(GSPCharacter, Log, TEXT("Jump"));
+	UE_LOG(GSPCharacter, Log, TEXT("IA_Attack"));
 }
 
-void AGSPCharacter::StopJumping()
+void AGSPCharacter::IA_Defend(const FInputActionValue& Value)
 {
-	Super::StopJumping();
+	UE_LOG(GSPCharacter, Log, TEXT("IA_Defend"));
 }
+
+void AGSPCharacter::IA_Support(const FInputActionValue& Value)
+{
+	UE_LOG(GSPCharacter, Log, TEXT("IA_Support"));
+}
+
+
