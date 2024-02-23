@@ -9,6 +9,7 @@
 #include "GameplayTags/Classes/GameplayTagAssetInterface.h"
 #include "GSPCharacter.generated.h"
 
+class UGameplayAbility;
 class UGSPAbilitySystemComponent;
 class USpringArmComponent;
 class UCameraComponent;
@@ -35,8 +36,6 @@ public:
 	APlayerState* GetGSPPlayerState() const;
 
 	/** IAbilitySystemInterface */
-	UFUNCTION(BlueprintCallable, Category = "GSP|Character")
-	UGSPAbilitySystemComponent* GetGSPAbilitySystemComponent() const;
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	/** End of IAbilitySystemInterface */
 
@@ -54,6 +53,33 @@ public:
 	virtual bool HasAnyMatchingGameplayTags(const FGameplayTagContainer& TagContainer) const override;
 	/** End of IGameplayTagAssetInterface */
 
+protected:
+	/* Ability Component */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GSP|Ability")
+	class UGSPAbilitySystemComponent* _AbilitySystemComponent;
+
+	/** Grants an ability */
+	UFUNCTION(BlueprintCallable, Category = "GSP|Ability")
+	void GrantAbility(TSubclassOf<UGameplayAbility> AbilityClass, int32 Level, int32 InputCode);
+
+	/** ACtivates an ability */
+	UFUNCTION(BlueprintCallable, Category = "GSP|Ability")
+	void ActivateAbility(int32 InputCode);
+
+	/** Cancels an ability */
+	UFUNCTION(BlueprintCallable, Category = "GSP|Ability")
+	void CancelAbility(const FGameplayTagContainer& CancelWithTags);
+
+	/** Attribute Set*/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GSP|Ability")
+	const class UGSPAttributeSet* _AttributeSet;
+
+	/** Character Health */
+	UFUNCTION(BlueprintPure, Category = "GSP|Ability|Attribute")
+	float GetCharacterHealth() const;
+
+	UFUNCTION(BlueprintPure, Category = "GSP|Ability|Attribute")
+	float GetCharacterMaxHealth() const;
 private:	
     
 
@@ -73,10 +99,6 @@ private:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GSP|Input", meta = (AllowPrivateAccess = "true"))
     TObjectPtr<UInputAction> _LookAction;
 
-	/* Ability Component */
-	UPROPERTY()
-	TObjectPtr<UGSPAbilitySystemComponent> _AbilitySystemComponent;
-
 	/** Camera boom positioning the camera behind the character */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GSP|Camera", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<USpringArmComponent> _CameraBoom;
@@ -88,6 +110,7 @@ private:
 	/** Projectile Spawn Point */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GSP", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UArrowComponent> _ProjectileSpawnPoint;
+
 protected:
 
 	/** Called for movement input */

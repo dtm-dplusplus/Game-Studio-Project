@@ -11,6 +11,8 @@
 #include "EnhancedInputSubsystems.h"
 #include "Components/ArrowComponent.h"
 #include "../Ability/GSPAbilitySystemComponent.h"
+#include "../Ability/GSPAttributeSet.h"
+
 
 DEFINE_LOG_CATEGORY(GSPCharacter)
 
@@ -73,6 +75,12 @@ void AGSPCharacter::BeginPlay()
 			Subsystem->AddMappingContext(_MappingContext, 0);
 		}
 	}
+
+	// Initialise Attribute Set
+	if(IsValid(_AbilitySystemComponent))
+	{
+		_AttributeSet = _AbilitySystemComponent->GetSet<UGSPAttributeSet>();
+	}
 }
 
 APlayerController* AGSPCharacter::GetGSPPlayerController() const
@@ -85,14 +93,9 @@ APlayerState* AGSPCharacter::GetGSPPlayerState() const
 	return GetGSPPlayerController()->PlayerState;
 }
 
-UGSPAbilitySystemComponent* AGSPCharacter::GetGSPAbilitySystemComponent() const
-{
-	return Cast<UGSPAbilitySystemComponent>(GetAbilitySystemComponent());
-}
-
 UAbilitySystemComponent* AGSPCharacter::GetAbilitySystemComponent() const
 {
-	return _AbilitySystemComponent;
+	return Cast<UAbilitySystemComponent>(_AbilitySystemComponent);
 }
 
 void AGSPCharacter::GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const
@@ -131,6 +134,61 @@ bool AGSPCharacter::HasAnyMatchingGameplayTags(const FGameplayTagContainer& TagC
 	}
 
 	return false;
+}
+
+void AGSPCharacter::GrantAbility(TSubclassOf<UGameplayAbility> AbilityClass, int32 Level, int32 InputCode)
+{
+	// Check if we have a valid AbilitySystemComponent and AbilityClass - Net code may not be necessary
+	if(GetLocalRole() == ROLE_Authority && IsValid(_AbilitySystemComponent) &&  IsValid(AbilityClass))
+	{
+		UGameplayAbility* Ability = AbilityClass->GetDefaultObject<UGameplayAbility>();
+
+		if(IsValid(Ability))
+		{
+			// Create a new FGameplayAbilitySpec and give it to the character
+			FGameplayAbilitySpec AbilitySpec(Ability, Level, InputCode, this);
+
+			// Give the ability to the character
+			_AbilitySystemComponent->GiveAbility(FGameplayAbilitySpec(Ability, Level, InputCode, this));
+		}
+	}
+}
+
+void AGSPCharacter::ActivateAbility(int32 InputCode)
+{
+	if (IsValid(_AbilitySystemComponent))
+	{
+		// Can this be bound to an input action?
+		_AbilitySystemComponent->AbilityLocalInputPressed(InputCode);
+	}
+}
+
+void AGSPCharacter::CancelAbility(const FGameplayTagContainer& CancelWithTags)
+{
+	if(IsValid(_AbilitySystemComponent))
+	{
+		_AbilitySystemComponent->CancelAbilities(&CancelWithTags);
+	}
+}
+
+float AGSPCharacter::GetCharacterHealth() const
+{
+	if (_AttributeSet)
+	{
+		return _AttributeSet->Get_Health();
+	}
+
+	return 0.0f;
+}
+
+float AGSPCharacter::GetCharacterMaxHealth() const
+{
+	if (_AttributeSet)
+	{
+		return _AttributeSet->Get_MaxHealth();
+	}
+
+	return 0.0f;
 }
 
 void AGSPCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
