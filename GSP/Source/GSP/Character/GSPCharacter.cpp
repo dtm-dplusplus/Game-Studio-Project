@@ -15,7 +15,7 @@
 #include "../Ability/GSPAbilitySystemComponent.h"
 #include "../Ability/GSPAttributeSet.h"
 #include "../Ability/GSPGlobalAbilitySystem.h"
-
+#include "GSPHealthComponent.h"
 
 DEFINE_LOG_CATEGORY(GSPCharacter)
 
@@ -59,8 +59,11 @@ AGSPCharacter::AGSPCharacter(const FObjectInitializer& ObjectInitializer):
 	_ProjectileSpawnPoint = CreateDefaultSubobject<UArrowComponent>(TEXT("ProjectileSpawnPoint"));
 	_ProjectileSpawnPoint->SetupAttachment(RootComponent);
 
-	// Set up Abilities
+	// Set up Ability component
 	_AbilitySystemComponent = CreateDefaultSubobject<UGSPAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
+
+	// Set up Health component
+	_HealthComponent = CreateDefaultSubobject<UGSPHealthComponent>(TEXT("HealthComponent"));
 
 	// AbilitySystemComponent needs to be updated at a high frequency.
 	NetUpdateFrequency = 100.0f;
@@ -107,6 +110,7 @@ APlayerController* AGSPCharacter::GetGSPPlayerController() const
 	return Cast<APlayerController>(GetController());
 }
 
+/////////////////////// Components //////////////////////
 UEnhancedInputComponent* AGSPCharacter::GetEnhancedInputComponent() const
 {
 	return Cast<UEnhancedInputComponent>(GetGSPPlayerController()->InputComponent);
@@ -117,6 +121,13 @@ UAbilitySystemComponent* AGSPCharacter::GetAbilitySystemComponent() const
 	return Cast<UAbilitySystemComponent>(_AbilitySystemComponent);
 }
 
+UGSPHealthComponent* AGSPCharacter::GetHealthComponent() const
+{
+	return Cast<UGSPHealthComponent>(_HealthComponent); 
+}
+
+
+/////////////////////// Attribute Sets //////////////////////
 const UGSPMovementAttributeSet* AGSPCharacter::GetMovementAttributeSet() const
 {
 	if(_AbilitySystemComponent)

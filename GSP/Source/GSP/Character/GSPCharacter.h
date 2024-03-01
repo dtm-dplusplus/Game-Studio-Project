@@ -45,6 +45,7 @@ public:
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	/** End of IAbilitySystemInterface */
 
+	class UGSPHealthComponent* GetHealthComponent() const;
 public:
 	/** UGSPMovementAttributeSet */
 	UFUNCTION(BlueprintCallable, Category = "Attribute")
@@ -89,6 +90,10 @@ protected:
 	/* Ability Component */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GSP|Ability")
 	UGSPAbilitySystemComponent* _AbilitySystemComponent;
+
+	/* Health Component */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GSP|Character")
+	UGSPHealthComponent* _HealthComponent;
 
 	/** MappingContext */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GSP|Input", meta = (AllowPrivateAccess = "true"))
