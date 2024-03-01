@@ -28,14 +28,17 @@ void UGSPGlobalAbilitySystem::AddASC(UGSPAbilitySystemComponent* ASC)
 	//....
 
 	_ASCs.AddUnique(ASC);
+
+	UE_LOG(LogTemp, Log, TEXT("Added ASC %s to Global Ability System"), *ASC->GetName());
 }
 
 void UGSPGlobalAbilitySystem::RemoveASC(UGSPAbilitySystemComponent* ASC)
 {
 	check(ASC);
-
-	// Remove Global Effects/Abilities
+	
 	// ....
 
+	UE_LOG(LogTemp, Log, TEXT("Removed ASC %s to Global Ability System"), *ASC->GetName());
 	_ASCs.Remove(ASC);
+
 }

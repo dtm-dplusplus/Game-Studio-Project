@@ -5,37 +5,21 @@
 #include "CoreMinimal.h"
 #include "AttributeSet.h"
 #include "AbilitySystemComponent.h"
+
+#include "Misc/AssertionMacros.h"
+#include "UObject/Class.h"
+#include "UObject/UObjectGlobals.h"
 #include "GSPAttributeSet.generated.h"
 
+#define ATTRIBUTE_ACCESSORS(ClassName, PropertyName) \
+	GAMEPLAYATTRIBUTE_PROPERTY_GETTER(ClassName, PropertyName) \
+	GAMEPLAYATTRIBUTE_VALUE_GETTER(PropertyName) \
+	GAMEPLAYATTRIBUTE_VALUE_SETTER(PropertyName) \
+	GAMEPLAYATTRIBUTE_VALUE_INITTER(PropertyName)
 
-
-/**
- * 
- */
-UCLASS()
+UCLASS(Abstract, EditInlineNew)
 class GSP_API UGSPAttributeSet : public UAttributeSet
 {
 	GENERATED_BODY()
-
-public:
-	void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
-
-	/** Character Health */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GSP|Character")
-	FGameplayAttributeData _Health;
-
-	GAMEPLAYATTRIBUTE_VALUE_GETTER(_Health);
-	GAMEPLAYATTRIBUTE_VALUE_SETTER(_Health)
-	GAMEPLAYATTRIBUTE_VALUE_INITTER(_Health);
-	GAMEPLAYATTRIBUTE_PROPERTY_GETTER(UGSPAttributeSet, _Health);
-
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GSP|Character")
-	FGameplayAttributeData _MaxHealth;
-
-	GAMEPLAYATTRIBUTE_VALUE_GETTER(_MaxHealth);
-	GAMEPLAYATTRIBUTE_VALUE_SETTER(_MaxHealth);
-	GAMEPLAYATTRIBUTE_VALUE_INITTER(_MaxHealth);
-	GAMEPLAYATTRIBUTE_PROPERTY_GETTER(UGSPAttributeSet, _MaxHealth);
 };
 

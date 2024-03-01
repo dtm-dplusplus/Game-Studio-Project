@@ -11,6 +11,10 @@
 #include "GameplayTags/Classes/GameplayTagAssetInterface.h"
 #include "GSPCharacter.generated.h"
 
+class UGSPCombatAttributeSet;
+class UGSPCharacterAttributeSet;
+class UGSPMovementAttributeSet;
+struct FAbilityInputAction;
 struct FGameplayAbilitySpec;
 class UGameplayAbility;
 class UGSPAbilitySystemComponent;
@@ -21,28 +25,6 @@ class UInputAction;
 // Declare a new log category
 DECLARE_LOG_CATEGORY_EXTERN(GSPCharacter, Log, All);
 
-/** Struct to hold input bindings for abilities */
-USTRUCT(BlueprintType)
-struct FAbilityInputBinding
-{
-	GENERATED_BODY()
-	int32  InputID = 0;
-	uint32 OnPressedHandle = 0;
-	uint32 OnReleasedHandle = 0;
-	TArray<FGameplayAbilitySpecHandle> BoundAbilitiesStack;
-};
-
-USTRUCT(BlueprintType)
-struct FAbilityInputAction
-{
-	GENERATED_BODY()
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GSP|Input")
-	UInputAction* InputAction;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GSP|Input")
-	TSubclassOf<UGameplayAbility> GameplayAbility;
-};
 
 /** Base class for all characters in the game */
 UCLASS(config = Game)
@@ -53,23 +35,33 @@ class GSP_API AGSPCharacter : public ACharacter, public IAbilitySystemInterface,
 public:
 	AGSPCharacter(const FObjectInitializer& ObjectInitializer);
 
-	virtual void BeginPlay() override;
-
 	UFUNCTION(BlueprintCallable, Category = "GSP|Character")
 	APlayerController* GetGSPPlayerController() const;
 
 	UFUNCTION(BlueprintCallable, Category = "GSP|Character")
 	UEnhancedInputComponent* GetEnhancedInputComponent() const;
 
-	UFUNCTION(BlueprintCallable, Category = "GSP|Character")
-	FVector2D GetInputActionValue2D(UInputAction* InputAction);
+	/** IAbilitySystemInterface */
+	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+	/** End of IAbilitySystemInterface */
 
-	/** Returns CameraBoom subobject **/
-	FORCEINLINE USpringArmComponent* GetCameraBoom() const { return _CameraBoom; }
-	/** Returns FollowCamera subobject **/
-	FORCEINLINE UCameraComponent* GetFollowCamera() const { return _FollowCamera; }
+public:
+	/** UGSPMovementAttributeSet */
+	UFUNCTION(BlueprintCallable, Category = "Attribute")
+	const UGSPMovementAttributeSet* GetMovementAttributeSet() const;
+	/** End of UGSPMovementAttributeSet */
 
+	/** UGSPCharacterAttributeSet */
+	UFUNCTION(BlueprintCallable, Category = "Attribute")
+	const UGSPCharacterAttributeSet* GetCharacterAttributeSet() const;
+	/** End of UGSPCharacterAttributeSet */
 
+	/** UGSPCombatAttributeSet */
+	UFUNCTION(BlueprintCallable, Category = "Attribute")
+	const UGSPCombatAttributeSet* GetCombatAttributeSet() const;
+	/** End of UGSPCombatAttributeSet */
+
+public:
 	/** IGameplayTagAssetInterface */
 	UFUNCTION(BlueprintCallable, Category = "GSP|GameplayTags")
 	virtual void GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const override;
@@ -84,55 +76,23 @@ public:
 	virtual bool HasAnyMatchingGameplayTags(const FGameplayTagContainer& TagContainer) const override;
 	/** End of IGameplayTagAssetInterface */
 
-
 protected:
+	virtual void BeginPlay() override;
+
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
 	/** APawn interface */
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 	/** End of APawn interface */
-
-public:
-
-	/** IAbilitySystemInterface */
-	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
-	/** End of IAbilitySystemInterface */
-
-	UFUNCTION(BlueprintCallable, Category = "GSP|Ability")
-	void SetInputBinding(UInputAction* InputAction, FGameplayAbilitySpecHandle AbilityHandle);
-
-	UFUNCTION(BlueprintCallable, Category = "GSP|Ability")
-	void ClearInputBinding(FGameplayAbilitySpecHandle AbilityHandle);
-
-	UFUNCTION(BlueprintCallable, Category = "GSP|Ability")
-	void ClearAbilityBindings(UInputAction* InputAction);
-
-	
 
 protected:
 	/* Ability Component */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GSP|Ability")
 	UGSPAbilitySystemComponent* _AbilitySystemComponent;
 
-	UPROPERTY(transient)
-	TMap<UInputAction*, FAbilityInputBinding> MappedAbilities;
-
-private:
-	FAbilityInputBinding* FindAbilityInputBinding(UInputAction* InputAction);
-	FGameplayAbilitySpec* FindAbilitySpec(FGameplayAbilitySpecHandle Handle);
-	void TryBindAbilityInput(UInputAction* InputAction, FAbilityInputBinding& AbilityInputBinding);
-	void OnAbilityInputPressed(UInputAction* InputAction);
-	void OnAbilityInputReleased(UInputAction* InputAction);
-
-	void ResetBindings();
-	void RunAbilitySystemSetup();
-	void RemoveEntry(UInputAction* InputAction);
-
-protected:
 	/** MappingContext */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GSP|Input", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UInputMappingContext> _MappingContext;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GSP|Input", meta = (AllowPrivateAccess = "true"))
-	TArray<FAbilityInputAction> _AbilityInputActions;
 
 private:
 	/** Camera boom positioning the camera behind the character */
