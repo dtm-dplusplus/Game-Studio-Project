@@ -3,21 +3,73 @@
 
 #include "GSPAbilitySystemComponent.h"
 
-#include "GSPGlobalAbilitySystem.h"
-
 DEFINE_LOG_CATEGORY(GSPAbility)
 
-UGSPAbilitySystemComponent::UGSPAbilitySystemComponent()
+////////////////////////////////////////  UGSPAbilitySystemComponent  //////////////////////////////////////
+void UGSPAbilitySystemComponent::GrantDefaultAbilitiesAndAttributes()
 {
+	// Reset/Remove abilities if we had already added them
+	{
+		for (UAttributeSet* AttribSetInstance : AddedAttributes)
+		{
+			RemoveSpawnedAttribute(AttribSetInstance);
+		}
+
+		for (FGameplayAbilitySpecHandle AbilityHandle : DefaultAbilityHandles)
+		{
+			SetRemoveAbilityOnEnd(AbilityHandle);
+		}
+
+		AddedAttributes.Empty(DefaultAttributes.Num());
+		DefaultAbilityHandles.Empty(DefaultAbilities.Num());
+	}
+
+	// Default abilities
+	{
+		DefaultAbilityHandles.Reserve(DefaultAbilities.Num());
+		for (const TSubclassOf<UGameplayAbility>& Ability : DefaultAbilities)
+		{
+			if (*Ability)
+			{
+				DefaultAbilityHandles.Add(GiveAbility(FGameplayAbilitySpec(Ability)));
+			}
+		}
+	}
+
+	// Default attributes
+	{
+		for (const FGSPAttributeInitializer& Attributes : DefaultAttributes)
+		{
+			if (Attributes.AttributeSetType)
+			{
+				UGSPAttributeSet* NewAttribSet = NewObject<UGSPAttributeSet>(this, Attributes.AttributeSetType);
+				if (Attributes.InitializationData)
+				{
+					NewAttribSet->InitFromMetaDataTable(Attributes.InitializationData);
+				}
+				AddedAttributes.Add(NewAttribSet);
+				AddAttributeSetSubobject(NewAttribSet);
+			}
+		}
+	}
+}
+
+void UGSPAbilitySystemComponent::InitAbilityActorInfo(AActor* InOwnerActor, AActor* InAvatarActor)
+{
+	Super::InitAbilityActorInfo(InOwnerActor, InAvatarActor);
 
 }
 
-void UGSPAbilitySystemComponent::BeginPlay()
+FGameplayAbilitySpecHandle UGSPAbilitySystemComponent::GrantAbilityOfType(TSubclassOf<UGameplayAbility> AbilityType,
+                                                                          bool bRemoveAfterActivation)
 {
-	Super::BeginPlay();
-
-	if (UGSPGlobalAbilitySystem* GlobalAbilitySystem = UWorld::GetSubsystem<UGSPGlobalAbilitySystem>(GetWorld()))
+	FGameplayAbilitySpecHandle AbilityHandle;
+	if (AbilityType)
 	{
-		GlobalAbilitySystem->AddASC(this);
+		FGameplayAbilitySpec AbilitySpec(AbilityType);
+		AbilitySpec.RemoveAfterActivation = bRemoveAfterActivation;
+
+		AbilityHandle = GiveAbility(AbilitySpec);
 	}
+	return AbilityHandle;
 }

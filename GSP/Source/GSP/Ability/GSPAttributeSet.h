@@ -7,6 +7,8 @@
 #include "AbilitySystemComponent.h"
 #include "GSPAttributeSet.generated.h"
 
+
+
 /**
  * 
  */
@@ -36,5 +38,4 @@ public:
 	GAMEPLAYATTRIBUTE_VALUE_INITTER(_MaxHealth);
 	GAMEPLAYATTRIBUTE_PROPERTY_GETTER(UGSPAttributeSet, _MaxHealth);
 };
-
 
