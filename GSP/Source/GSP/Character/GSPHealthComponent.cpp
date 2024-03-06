@@ -2,35 +2,80 @@
 
 
 #include "GSPHealthComponent.h"
+#include "GameplayEffectExtension.h"
 #include "../Ability/GSPAbilitySystemComponent.h"
 #include "../Ability/AttributeSet/GSPHealthSet.h"
 
-// Sets default values for this component's properties
+DEFINE_LOG_CATEGORY(GSPHealthComponent)
 UGSPHealthComponent::UGSPHealthComponent()
 {
-	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
-	// off to improve performance if you don't need them.
-	PrimaryComponentTick.bCanEverTick = true;
-
-	// ...
+	// These are set in Initialize
+	_AbilitySystemComponent = nullptr;
+	_HealthSet = nullptr;
 }
 
-
-// Called when the game starts
-void UGSPHealthComponent::BeginPlay()
+float UGSPHealthComponent::GetHealth() const
 {
-	Super::BeginPlay();
-
-	// ...
-	
+	return _HealthSet->Get_Health();
 }
 
-
-// Called every frame
-void UGSPHealthComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+float UGSPHealthComponent::GetMaxHealth() const
 {
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
-	// ...
+	return _HealthSet->Get_MaxHealth();
 }
 
+float UGSPHealthComponent::GetHealthNormalized() const
+{
+	return  _HealthSet->Get_Health() / _HealthSet->Get_MaxHealth();
+}
+
+void UGSPHealthComponent::Initialize(UGSPAbilitySystemComponent* ASC)
+{
+	const AActor* Owner = GetOwner();
+	check(Owner);
+
+	if (_AbilitySystemComponent)
+	{
+		UE_LOG(GSPHealthComponent, Error, TEXT("GSPHealthComponent: Health component for owner [%s] has already been initialized with an ability system."), *GetNameSafe(Owner));
+		return;
+	}
+
+	_AbilitySystemComponent = ASC;
+	if (!_AbilitySystemComponent)
+	{
+		UE_LOG(GSPHealthComponent, Error, TEXT("GSPHealthComponent: Cannot initialize health component for owner [%s] with NULL ability system."), *GetNameSafe(Owner));
+		return;
+	}
+
+	_HealthSet = _AbilitySystemComponent->GetSet<UGSPHealthSet>();
+	if (!_HealthSet)
+	{
+		UE_LOG(GSPHealthComponent, Error, TEXT("GSPHealthComponent: Cannot initialize health component for owner [%s] with NULL health set on the ability system."), *GetNameSafe(Owner));
+		return;
+	}
+
+	// Register to listen for attribute changes.
+	_AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UGSPHealthSet::Get_HealthAttribute()).AddUObject(this, &ThisClass::HandleHealthChanged);
+
+	// Set attributes to default values.
+	_AbilitySystemComponent->SetNumericAttributeBase(UGSPHealthSet::Get_HealthAttribute(), _HealthSet->Get_MaxHealth());
+
+	// Broadcast the initial health value. This is useful for UI.
+	_OnHealthChanged.Broadcast(this, _HealthSet->Get_Health(), _HealthSet->Get_Health(), nullptr);
+}
+
+static AActor* GetInstigatorFromAttrChangeData(const FOnAttributeChangeData& ChangeData)
+{
+	if (ChangeData.GEModData != nullptr)
+	{
+		const FGameplayEffectContextHandle& EffectContext = ChangeData.GEModData->EffectSpec.GetEffectContext();
+		return EffectContext.GetOriginalInstigator();
+	}
+
+	return nullptr;
+}
+
+void UGSPHealthComponent::HandleHealthChanged(const FOnAttributeChangeData& ChangeData)
+{
+	_OnHealthChanged.Broadcast(this, ChangeData.OldValue, ChangeData.NewValue, GetInstigatorFromAttrChangeData(ChangeData));
+}

@@ -35,16 +35,18 @@ class GSP_API AGSPCharacter : public ACharacter, public IAbilitySystemInterface,
 public:
 	AGSPCharacter(const FObjectInitializer& ObjectInitializer);
 
-	UFUNCTION(BlueprintCallable, Category = "GSP|Character")
+	UFUNCTION(BlueprintCallable, Category = "GSP|Input")
 	APlayerController* GetGSPPlayerController() const;
 
-	UFUNCTION(BlueprintCallable, Category = "GSP|Character")
+	UFUNCTION(BlueprintCallable, Category = "GSP|Input")
 	UEnhancedInputComponent* GetEnhancedInputComponent() const;
 
 	/** IAbilitySystemInterface */
+	UFUNCTION(BlueprintCallable, Category = "GSP|Ability")
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	/** End of IAbilitySystemInterface */
 
+	UFUNCTION(BlueprintCallable, Category = "GSP|Health")
 	class UGSPHealthComponent* GetHealthComponent() const;
 public:
 	/** UGSPMovementAttributeSet */
@@ -85,7 +87,7 @@ protected:
 	/** APawn interface */
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 	/** End of APawn interface */
-
+	
 protected:
 	/* Ability Component */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GSP|Ability")

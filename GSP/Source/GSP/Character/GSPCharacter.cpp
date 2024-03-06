@@ -71,7 +71,6 @@ AGSPCharacter::AGSPCharacter(const FObjectInitializer& ObjectInitializer):
 
 void AGSPCharacter::BeginPlay()
 {
-	// Call the base class  
 	Super::BeginPlay();
 
 	//Add Input Mapping Context
@@ -84,7 +83,7 @@ void AGSPCharacter::BeginPlay()
 	}
 
 	// Set up Attributes
-	if(_AbilitySystemComponent)
+	check(_AbilitySystemComponent)
 	{
 		if(const UGSPMovementAttributeSet* MovementAttribSet
 			= Cast<UGSPMovementAttributeSet>(_AbilitySystemComponent->GetAttributeSet(UGSPMovementAttributeSet::StaticClass())))
@@ -93,6 +92,9 @@ void AGSPCharacter::BeginPlay()
 			GetCharacterMovement()->MaxWalkSpeed = MovementAttribSet->Get_MoveSpeed();
 		}
 	}
+
+	// Set up Health
+	_HealthComponent->Initialize(_AbilitySystemComponent);
 }
 
 void AGSPCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)

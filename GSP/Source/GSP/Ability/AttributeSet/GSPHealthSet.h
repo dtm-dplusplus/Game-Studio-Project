@@ -17,6 +17,7 @@ class GSP_API UGSPHealthSet : public UGSPAttributeSet
 public:
 	UGSPHealthSet();
 
+	ATTRIBUTE_ACCESSORS(UGSPHealthSet, _Health);
 	ATTRIBUTE_ACCESSORS(UGSPHealthSet, _MaxHealth);
 	ATTRIBUTE_ACCESSORS(UGSPHealthSet, _Healing);
 	ATTRIBUTE_ACCESSORS(UGSPHealthSet, _Damage);
@@ -33,16 +34,12 @@ private:
 	// Used to track when the health reaches 0.
 	bool bOutOfHealth;
 
-	// -------------------------------------------------------------------
-	//	Meta Attribute (please keep attributes that aren't 'stateful' below 
-	// -------------------------------------------------------------------
-
 private:
 	// Incoming healing. This is mapped directly to +Health
-	UPROPERTY(BlueprintReadOnly, Category = "Lyra|Health", Meta = (AllowPrivateAccess = true))
+	UPROPERTY(BlueprintReadOnly, Category = "GSP|Health", Meta = (AllowPrivateAccess = true))
 	FGameplayAttributeData _Healing;
 
 	// Incoming damage. This is mapped directly to -Health
-	UPROPERTY(BlueprintReadOnly, Category = "Lyra|Health", Meta = (HideFromModifiers, AllowPrivateAccess = true))
+	UPROPERTY(BlueprintReadOnly, Category = "GSP|Health", Meta = (HideFromModifiers, AllowPrivateAccess = true))
 	FGameplayAttributeData _Damage;
 };
