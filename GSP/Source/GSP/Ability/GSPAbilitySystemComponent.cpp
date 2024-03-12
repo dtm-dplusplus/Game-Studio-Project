@@ -83,10 +83,7 @@ void UGSPAbilitySystemComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (UGSPGlobalAbilitySystem* GlobalAbilitySystem = UWorld::GetSubsystem<UGSPGlobalAbilitySystem>(GetWorld()))
-	{
-		GlobalAbilitySystem->AddASC(this);
-	}
+	
 
 	GrantDefaultAbilitiesAndAttributes();
 
@@ -106,6 +103,11 @@ void UGSPAbilitySystemComponent::InitAbilityActorInfo(AActor* InOwnerActor, AAct
 {
 	Super::InitAbilityActorInfo(InOwnerActor, InAvatarActor);
 
+	if (UGSPGlobalAbilitySystem* GlobalAbilitySystem = UWorld::GetSubsystem<UGSPGlobalAbilitySystem>(GetWorld()))
+	{
+		GlobalAbilitySystem->AddASC(this);
+		UE_LOG(GSPAbility, Warning, TEXT("InitAbilityActorInfo: %s"), *GetName());
+	}
 }
 
 FGameplayAbilitySpecHandle UGSPAbilitySystemComponent::GrantAbilityOfType(TSubclassOf<UGameplayAbility> AbilityType,

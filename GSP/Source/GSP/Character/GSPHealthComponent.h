@@ -15,7 +15,7 @@ class UGSPAbilitySystemComponent;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(FGSPHealth_AttributeChanged, UGSPHealthComponent*, HealthComponent, float, OldValue, float, NewValue, AActor*, Instigator);
 
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
+UCLASS(Blueprintable, meta=(BlueprintSpawnableComponent) )
 class GSP_API UGSPHealthComponent : public UActorComponent
 {
 	GENERATED_BODY()
@@ -45,7 +45,6 @@ public:
 
 protected:
 	virtual void HandleHealthChanged(const FOnAttributeChangeData& ChangeData);
-
 protected:
 	// Ability system used by this component.
 	UPROPERTY()

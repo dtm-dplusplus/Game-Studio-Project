@@ -123,6 +123,11 @@ UAbilitySystemComponent* AGSPCharacter::GetAbilitySystemComponent() const
 	return Cast<UAbilitySystemComponent>(_AbilitySystemComponent);
 }
 
+UGSPAbilitySystemComponent* AGSPCharacter::GetGSPAbilitySystemComponent() const
+{
+	return Cast<UGSPAbilitySystemComponent>(_AbilitySystemComponent);
+}
+
 UGSPHealthComponent* AGSPCharacter::GetHealthComponent() const
 {
 	return Cast<UGSPHealthComponent>(_HealthComponent); 

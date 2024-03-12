@@ -17,6 +17,9 @@
 	GAMEPLAYATTRIBUTE_VALUE_SETTER(PropertyName) \
 	GAMEPLAYATTRIBUTE_VALUE_INITTER(PropertyName)
 
+// Delegate used to broadcast attribute events.
+DECLARE_MULTICAST_DELEGATE_FourParams(FGSPAttributeEvent, AActor* /*EffectInstigator*/, AActor* /*EffectCauser*/, const FGameplayEffectSpec& /*EffectSpec*/, float /*EffectMagnitude*/);
+
 UCLASS(Abstract, EditInlineNew)
 class GSP_API UGSPAttributeSet : public UAttributeSet
 {

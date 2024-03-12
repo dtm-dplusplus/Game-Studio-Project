@@ -9,6 +9,11 @@
 DEFINE_LOG_CATEGORY(GSPHealthComponent)
 UGSPHealthComponent::UGSPHealthComponent()
 {
+	PrimaryComponentTick.bStartWithTickEnabled = false;
+	PrimaryComponentTick.bCanEverTick = false;
+
+	SetIsReplicatedByDefault(true);
+
 	// These are set in Initialize
 	_AbilitySystemComponent = nullptr;
 	_HealthSet = nullptr;
@@ -34,11 +39,11 @@ void UGSPHealthComponent::Initialize(UGSPAbilitySystemComponent* ASC)
 	const AActor* Owner = GetOwner();
 	check(Owner);
 
-	if (_AbilitySystemComponent)
-	{
-		UE_LOG(GSPHealthComponent, Error, TEXT("GSPHealthComponent: Health component for owner [%s] has already been initialized with an ability system."), *GetNameSafe(Owner));
-		return;
-	}
+	//if (_AbilitySystemComponent)
+	//{
+	//	UE_LOG(GSPHealthComponent, Error, TEXT("GSPHealthComponent: Health component for owner [%s] has already been initialized with an ability system."), *GetNameSafe(Owner));
+	//	return;
+	//}
 
 	_AbilitySystemComponent = ASC;
 	if (!_AbilitySystemComponent)
@@ -78,4 +83,5 @@ static AActor* GetInstigatorFromAttrChangeData(const FOnAttributeChangeData& Cha
 void UGSPHealthComponent::HandleHealthChanged(const FOnAttributeChangeData& ChangeData)
 {
 	_OnHealthChanged.Broadcast(this, ChangeData.OldValue, ChangeData.NewValue, GetInstigatorFromAttrChangeData(ChangeData));
+	UE_LOG(GSPHealthComponent, Warning, TEXT("Health changed from %f to %f"), ChangeData.OldValue, ChangeData.NewValue);
 }

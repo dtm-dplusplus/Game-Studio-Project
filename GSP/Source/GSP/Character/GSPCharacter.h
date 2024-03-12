@@ -44,6 +44,9 @@ public:
 	/** IAbilitySystemInterface */
 	UFUNCTION(BlueprintCallable, Category = "GSP|Ability")
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+
+	UFUNCTION(BlueprintCallable, Category = "GSP|Ability")
+	UGSPAbilitySystemComponent* GetGSPAbilitySystemComponent() const;
 	/** End of IAbilitySystemInterface */
 
 	UFUNCTION(BlueprintCallable, Category = "GSP|Health")
