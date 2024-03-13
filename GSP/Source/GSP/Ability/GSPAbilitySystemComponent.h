@@ -12,20 +12,6 @@ class UInputAction;
 
 DECLARE_LOG_CATEGORY_EXTERN(GSPAbility, Log, All);
 
-USTRUCT()
-struct FGSPAttributeInitializer
-{
-	GENERATED_BODY()
-
-	// Ability set to grant
-	UPROPERTY(EditAnywhere)
-	TSubclassOf<UGSPAttributeSet> AttributeSetType;
-
-	// Data table reference to initialize the attributes with, if any (can be left unset)
-	UPROPERTY(EditAnywhere)
-	UDataTable* InitializationData = nullptr;
-};
-
 /** Struct to hold input bindings for abilities */
 USTRUCT(BlueprintType)
 struct FAbilityInputBinding
@@ -42,14 +28,12 @@ struct FAbilityInputAction
 {
 	GENERATED_BODY()
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GSP|Input")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GSP|Ability")
 	UInputAction* InputAction;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GSP|Input")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GSP|Ability")
 	TSubclassOf<UGameplayAbility> GameplayAbility;
 };
-
-
 
 /** Ability System Component for GSP
  * 
@@ -60,26 +44,21 @@ class GSP_API UGSPAbilitySystemComponent : public UAbilitySystemComponent
 	GENERATED_BODY()
 
 public:
-	UFUNCTION(BlueprintCallable, Category = Ability)
+	UFUNCTION(BlueprintCallable, Category = "GSP|Ability")
 	void SetInputBinding(UInputAction* InputAction, FGameplayAbilitySpecHandle AbilityHandle);
 
-	UFUNCTION(BlueprintCallable, Category = Ability)
+	UFUNCTION(BlueprintCallable, Category = "GSP|Ability")
 	void ClearInputBinding(FGameplayAbilitySpecHandle AbilityHandle);
 
-	UFUNCTION(BlueprintCallable, Category = Ability)
+	UFUNCTION(BlueprintCallable, Category = "GSP|Ability")
 	void ClearAbilityBindings(UInputAction* InputAction);
 
-	UPROPERTY(EditDefaultsOnly, Category = Ability)
+	UPROPERTY(EditAnywhere, Category = "GSP|Ability")
 	TArray<FAbilityInputAction> DefaultAbilities;
 
-	UPROPERTY(EditDefaultsOnly, Category = Ability)
-	TArray<FGSPAttributeInitializer> DefaultAttributes;
-
-	//~ Begin UAbilitySystemComponent interface
 	virtual void InitAbilityActorInfo(AActor* InOwnerActor, AActor* InAvatarActor) override;
-	//~ End UAbilitySystemComponent interface
 
-	UFUNCTION(BlueprintCallable, Category = Ability)
+	UFUNCTION(BlueprintCallable, Category = "GSP|Ability")
 	FGameplayAbilitySpecHandle GrantAbilityOfType(TSubclassOf<UGameplayAbility> AbilityType, bool bRemoveAfterActivation);
 
 protected:
@@ -90,18 +69,17 @@ protected:
 	virtual void BeginDestroy() override;
 	//~ End UObject interface
 
-	/** Handles generated from default abilities */
+	/** Handles generated from default abilities - These act as instances of the ability*/
 	TArray<FGameplayAbilitySpecHandle> DefaultAbilityHandles;
 
 	/** Attributes added during gameplay*/
-	UPROPERTY(VisibleInstanceOnly, transient)
+	UPROPERTY(VisibleInstanceOnly, transient, Category = "GSP|Ability")
 	TArray<UAttributeSet*> AddedAttributes;
 
 private:
 	UPROPERTY(transient)
 	TMap<UInputAction*, FAbilityInputBinding> MappedAbilities;
 
-private:
 	FAbilityInputBinding* FindAbilityInputBinding(UInputAction* InputAction);
 	FGameplayAbilitySpec* FindAbilitySpec(FGameplayAbilitySpecHandle Handle);
 	UEnhancedInputComponent* GetEnhancedInputComponent() const;

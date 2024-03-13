@@ -4,9 +4,7 @@
 #include "GSPAbilitySystemComponent.h"
 
 #include "GSPGlobalAbilitySystem.h"
-#include <EnhancedInputComponent.h>
-
-#include "../Character/GSPMovementAttributeSet.h"
+#include "EnhancedInputComponent.h"
 
 DEFINE_LOG_CATEGORY(GSPAbility)
 
@@ -27,20 +25,20 @@ namespace AbilityInputBindingComponent_Impl
 void UGSPAbilitySystemComponent::GrantDefaultAbilitiesAndAttributes()
 {
 	// Reset/Remove abilities if we had already added them
-	{
-		for (UAttributeSet* AttribSetInstance : AddedAttributes)
-		{
-			RemoveSpawnedAttribute(AttribSetInstance);
-		}
+	//{
+	//	for (UAttributeSet* AttribSetInstance : AddedAttributes)
+	//	{
+	//		RemoveSpawnedAttribute(AttribSetInstance);
+	//	}
 
-		for (FGameplayAbilitySpecHandle AbilityHandle : DefaultAbilityHandles)
-		{
-			SetRemoveAbilityOnEnd(AbilityHandle);
-		}
+	//	for (FGameplayAbilitySpecHandle AbilityHandle : DefaultAbilityHandles)
+	//	{
+	//		SetRemoveAbilityOnEnd(AbilityHandle);
+	//	}
 
-		AddedAttributes.Empty(DefaultAttributes.Num());
-		DefaultAbilityHandles.Empty(DefaultAbilities.Num());
-	}
+	//	AddedAttributes.Empty(DefaultAttributes.Num());
+	//	DefaultAbilityHandles.Empty(DefaultAbilities.Num());
+	//}
 
 	// Default abilities
 	{
@@ -62,7 +60,7 @@ void UGSPAbilitySystemComponent::GrantDefaultAbilitiesAndAttributes()
 	}
 
 	// Default attributes
-	{
+	/*{
 		for (const FGSPAttributeInitializer& Attributes : DefaultAttributes)
 		{
 			if (Attributes.AttributeSetType)
@@ -76,7 +74,7 @@ void UGSPAbilitySystemComponent::GrantDefaultAbilitiesAndAttributes()
 				AddAttributeSetSubobject(NewAttribSet);
 			}
 		}
-	}
+	}*/
 }
 
 void UGSPAbilitySystemComponent::BeginPlay()
@@ -86,7 +84,6 @@ void UGSPAbilitySystemComponent::BeginPlay()
 	
 
 	GrantDefaultAbilitiesAndAttributes();
-
 }
 
 void UGSPAbilitySystemComponent::BeginDestroy()

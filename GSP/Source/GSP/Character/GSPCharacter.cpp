@@ -1,6 +1,7 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "GSPCharacter.h"
+
+#include "EnhancedInputComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/InputComponent.h"
@@ -8,24 +9,20 @@
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "EnhancedInputSubsystems.h"
-#include "GSPCharacterAttributeSet.h"
-#include "GSPCombatAttributeSet.h"
-#include "GSPMovementAttributeSet.h"
+#include "GSPPlayerState.h"
 #include "Components/ArrowComponent.h"
 #include "../Ability/GSPAbilitySystemComponent.h"
 #include "../Ability/GSPAttributeSet.h"
-#include "../Ability/GSPGlobalAbilitySystem.h"
-#include "GSPHealthComponent.h"
 
 DEFINE_LOG_CATEGORY(GSPCharacter)
-
-
 
 AGSPCharacter::AGSPCharacter(const FObjectInitializer& ObjectInitializer):
 	Super(ObjectInitializer)
 {
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Overlap);
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 
 	// Don't rotate when the controller rotates. Let that just affect the camera.
 	bUseControllerRotationPitch = false;
@@ -60,13 +57,187 @@ AGSPCharacter::AGSPCharacter(const FObjectInitializer& ObjectInitializer):
 	_ProjectileSpawnPoint->SetupAttachment(RootComponent);
 
 	// Set up Ability component
-	_AbilitySystemComponent = CreateDefaultSubobject<UGSPAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
+	_AbilitySystemComponent = CreateDefaultSubobject<UGSPAbilitySystemComponent>(TEXT("_AbilitySystemComponent"));
 
-	// Set up Health component
-	_HealthComponent = CreateDefaultSubobject<UGSPHealthComponent>(TEXT("HealthComponent"));
 
-	// AbilitySystemComponent needs to be updated at a high frequency.
+	// _AbilitySystemComponent needs to be updated at a high frequency.
 	NetUpdateFrequency = 100.0f;
+
+	// Cache tags
+	DeadTag = FGameplayTag::RequestGameplayTag("Actor.State.Dead");
+}
+
+bool AGSPCharacter::IsAlive() const
+{
+	return GetHealth() > 0.0f;
+}
+
+void AGSPCharacter::Death()
+{
+	OnDeath();
+}
+
+void AGSPCharacter::FinishDeath()
+{
+	Destroy();
+}
+
+void AGSPCharacter::InitializeAttributes()
+{
+	if (!IsValid(_AbilitySystemComponent))
+	{
+		return;
+	}
+
+	if (!_DefaultAttributes)
+	{
+		UE_LOG(LogTemp, Error, TEXT("%s() Missing _DefaultAttributes for %s. Please fill in the character's Blueprint."), *FString(__FUNCTION__), *GetName());
+		return;
+	}
+
+	// Can run on Server and Client
+	FGameplayEffectContextHandle EffectContext = _AbilitySystemComponent->MakeEffectContext();
+	EffectContext.AddSourceObject(this);
+
+	FGameplayEffectSpecHandle NewHandle = _AbilitySystemComponent->MakeOutgoingSpec(_DefaultAttributes, GetCharacterLevel(), EffectContext);
+	if (NewHandle.IsValid())
+	{
+		FActiveGameplayEffectHandle ActiveGEHandle = _AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*NewHandle.Data.Get());
+	}
+}
+
+void AGSPCharacter::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+
+	if (AGSPPlayerState* PS = GetPlayerState<AGSPPlayerState>())
+	{
+		// Set the ASC on the Server. Clients do this in OnRep_PlayerState()
+		_AbilitySystemComponent = Cast<UGSPAbilitySystemComponent>(PS->GetAbilitySystemComponent());
+
+		// AI won't have PlayerControllers so we can init again here just to be sure. No harm in initing twice for heroes that have PlayerControllers.
+		PS->GetAbilitySystemComponent()->InitAbilityActorInfo(PS, this);
+
+		// Set the _AttributeSet for convenience attribute functions
+		AttributeSetBase = PS->GetAttributeSetBase();
+
+		// If we handle players disconnecting and rejoining in the future, we'll have to change this so that possession from rejoining doesn't reset attributes.
+		// For now assume possession = spawn/respawn.
+		InitializeAttributes();
+
+		//AddStartupEffects();
+
+		//AddCharacterAbilities();
+
+		if (APlayerController* PC = Cast<APlayerController>(GetController()))
+		{
+			//PC->CreateHUD();
+		}
+
+		if (_AbilitySystemComponent->GetTagCount(DeadTag) > 0)
+		{
+			// Set to max for respawn
+			SetHealth(GetMaxHealth());
+			SetStamina(GetMaxStamina());
+			SetShield(GetMaxShield());
+		}
+
+		// Remove Dead tag
+		_AbilitySystemComponent->RemoveActiveEffectsWithGrantedTags(FGameplayTagContainer(DeadTag));
+
+		UE_LOG(LogTemp, Warning, TEXT("AGSPCharacter::PossessedBy %s"), *GetName());
+	}
+}
+
+int32 AGSPCharacter::GetCharacterLevel() const
+{
+	if (AttributeSetBase)
+	{
+		return AttributeSetBase->GetCharacterLevel();
+	}
+
+	return 0;
+}
+
+float AGSPCharacter::GetHealth() const
+{
+	if(AttributeSetBase)
+	{
+		return AttributeSetBase->GetHealth();
+	}
+
+	return 0.0f;
+}
+
+float AGSPCharacter::GetMoveSpeed() const
+{
+	if (AttributeSetBase)
+	{
+		return AttributeSetBase->GetMoveSpeed();
+	}
+
+	return 0.0f;
+}
+
+float AGSPCharacter::GetMoveSpeedBaseValue() const
+{
+	if (AttributeSetBase)
+	{
+		return AttributeSetBase->GetMoveSpeedAttribute().
+			GetGameplayAttributeData(AttributeSetBase)->GetBaseValue();
+	}
+
+	return 0.0f;
+}
+
+float AGSPCharacter::GetMaxHealth() const
+{
+	if(AttributeSetBase)
+	{
+		return AttributeSetBase->GetMaxHealth();
+	}
+
+	return 0.0f;
+}
+
+float AGSPCharacter::GetStamina() const
+{
+	if (AttributeSetBase)
+	{
+		return AttributeSetBase->GetStamina();
+	}
+
+	return 0.0f;
+}
+
+float AGSPCharacter::GetMaxStamina() const
+{
+	if (AttributeSetBase)
+	{
+		return AttributeSetBase->GetMaxStamina();
+	}
+
+	return 0.0f;
+}
+
+float AGSPCharacter::GetShield() const
+{
+	if (AttributeSetBase)
+	{
+		return AttributeSetBase->GetShield();
+	}
+
+	return 0.0f;
+}
+
+float AGSPCharacter::GetMaxShield() const
+{
+	if (AttributeSetBase)
+	{
+		return AttributeSetBase->GetMaxShield();
+	}
+
+	return 0.0f;
 }
 
 void AGSPCharacter::BeginPlay()
@@ -76,25 +247,23 @@ void AGSPCharacter::BeginPlay()
 	//Add Input Mapping Context
 	if (const APlayerController* PC = Cast<APlayerController>(Controller))
 	{
-		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer()))
+		if (const auto Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer()))
 		{
 			Subsystem->AddMappingContext(_MappingContext, 0);
 		}
 	}
 
-	// Set up Attributes
-	check(_AbilitySystemComponent)
+	if(!_AbilitySystemComponent)
 	{
-		if(const UGSPMovementAttributeSet* MovementAttribSet
-			= Cast<UGSPMovementAttributeSet>(_AbilitySystemComponent->GetAttributeSet(UGSPMovementAttributeSet::StaticClass())))
-		{
-			GetCharacterMovement()->JumpZVelocity = MovementAttribSet->Get_JumpHeight();
-			GetCharacterMovement()->MaxWalkSpeed = MovementAttribSet->Get_MoveSpeed();
-		}
+		UE_LOG(LogTemp, Error, TEXT("%s() Missing _AbilitySystemComponent for %s. Please fill in the character's Blueprint."), *FString(__FUNCTION__), *GetName());
+		return;
 	}
 
-	// Set up Health
-	_HealthComponent->Initialize(_AbilitySystemComponent);
+	if (!_DefaultAttributes)
+	{
+		UE_LOG(LogTemp, Error, TEXT("%s() Missing _DefaultAttributes for %s. Please fill in the character's Blueprint."), *FString(__FUNCTION__), *GetName());
+		return;
+	}
 }
 
 void AGSPCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -105,6 +274,31 @@ void AGSPCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
 void AGSPCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
+}
+
+void AGSPCharacter::SetHealth(float Health)
+{
+	if (AttributeSetBase)
+	{
+		AttributeSetBase->SetHealth(Health);
+	}
+
+}
+
+void AGSPCharacter::SetStamina(float Stamina)
+{
+	if (AttributeSetBase)
+	{
+		AttributeSetBase->SetStamina(Stamina);
+	}
+}
+
+void AGSPCharacter::SetShield(float Shield)
+{
+	if(AttributeSetBase)
+	{
+		AttributeSetBase->SetShield(Shield);
+	}
 }
 
 APlayerController* AGSPCharacter::GetGSPPlayerController() const
@@ -126,55 +320,6 @@ UAbilitySystemComponent* AGSPCharacter::GetAbilitySystemComponent() const
 UGSPAbilitySystemComponent* AGSPCharacter::GetGSPAbilitySystemComponent() const
 {
 	return Cast<UGSPAbilitySystemComponent>(_AbilitySystemComponent);
-}
-
-UGSPHealthComponent* AGSPCharacter::GetHealthComponent() const
-{
-	return Cast<UGSPHealthComponent>(_HealthComponent); 
-}
-
-
-/////////////////////// Attribute Sets //////////////////////
-const UGSPMovementAttributeSet* AGSPCharacter::GetMovementAttributeSet() const
-{
-	if(_AbilitySystemComponent)
-	{
-		if(const UGSPMovementAttributeSet* MovementAttribSet
-						= Cast<UGSPMovementAttributeSet>(_AbilitySystemComponent->GetAttributeSet(UGSPMovementAttributeSet::StaticClass())))
-		{
-			return MovementAttribSet;
-		}
-		return nullptr;
-	}
-	return nullptr;
-}
-
-const UGSPCharacterAttributeSet* AGSPCharacter::GetCharacterAttributeSet() const
-{
-	if (_AbilitySystemComponent)
-	{
-		if (const UGSPCharacterAttributeSet* CharAttribSet
-			= Cast<UGSPCharacterAttributeSet>(_AbilitySystemComponent->GetAttributeSet(UGSPCharacterAttributeSet::StaticClass())))
-		{
-			return CharAttribSet;
-		}
-		return nullptr;
-	}
-	return nullptr;
-}
-
-const UGSPCombatAttributeSet* AGSPCharacter::GetCombatAttributeSet() const
-{
-	if(_AbilitySystemComponent)
-	{
-		if (const UGSPCombatAttributeSet* CombatAttribSet
-				= Cast<UGSPCombatAttributeSet>(_AbilitySystemComponent->GetAttributeSet(UGSPCombatAttributeSet::StaticClass())))
-		{
-			return CombatAttribSet;
-		}
-		return nullptr;
-	}
-	return nullptr;
 }
 
 
@@ -211,7 +356,7 @@ bool AGSPCharacter::HasAnyMatchingGameplayTags(const FGameplayTagContainer& TagC
 {
 	if (_AbilitySystemComponent)
 	{
-		return _AbilitySystemComponent->HasAllMatchingGameplayTags(TagContainer);
+		return _AbilitySystemComponent->HasAnyMatchingGameplayTags(TagContainer);
 	}
 
 	return false;

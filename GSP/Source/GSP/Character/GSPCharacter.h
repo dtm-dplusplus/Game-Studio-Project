@@ -4,16 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
-#include "InputActionValue.h"
-#include "EnhancedInputComponent.h"
 #include "AbilitySystemInterface.h"
-#include "GameplayAbilities/Public/GameplayAbilitySpecHandle.h"
-#include "GameplayTags/Classes/GameplayTagAssetInterface.h"
+#include "GameplayTagAssetInterface.h"
 #include "GSPCharacter.generated.h"
 
-class UGSPCombatAttributeSet;
-class UGSPCharacterAttributeSet;
-class UGSPMovementAttributeSet;
+class UGSPAttributeSet;
 struct FAbilityInputAction;
 struct FGameplayAbilitySpec;
 class UGameplayAbility;
@@ -26,8 +21,8 @@ class UInputAction;
 DECLARE_LOG_CATEGORY_EXTERN(GSPCharacter, Log, All);
 
 
-/** Base class for all characters in the game */
-UCLASS(config = Game)
+/** Base class for all characters in the game - This should not be used directly, use subclasses of this type */
+UCLASS()
 class GSP_API AGSPCharacter : public ACharacter, public IAbilitySystemInterface, public IGameplayTagAssetInterface
 {
 	GENERATED_BODY()
@@ -35,39 +30,100 @@ class GSP_API AGSPCharacter : public ACharacter, public IAbilitySystemInterface,
 public:
 	AGSPCharacter(const FObjectInitializer& ObjectInitializer);
 
+	bool IsAlive() const;
+
+	virtual void Death();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "GSP|GSCharacter")
+	void OnDeath();
+
+	/** Call in BP once death actions are done */
+	UFUNCTION(BlueprintCallable, Category = "GSP|GSCharacter")
+	virtual void FinishDeath();
+
+	virtual void InitializeAttributes();
+	virtual void PossessedBy(AController* NewController) override;
+
+protected:
+	/* Ability Component */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GSP|Ability")
+	UGSPAbilitySystemComponent* _AbilitySystemComponent;
+
+	// Reference to the _AttributeSet. It will live on the PlayerState or here if the character doesn't have a PlayerState.
+	UPROPERTY()
+	UGSPAttributeSet* AttributeSetBase;
+
+	FGameplayTag DeadTag;
+
+	// Default attributes for a character for initializing on spawn/respawn.
+	// This is an instant GE that overrides the values for attributes that get reset on spawn/respawn.
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "GSP|Abilities")
+	TSubclassOf<class UGameplayEffect> _DefaultAttributes;
+
+	/** MappingContext */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GSP|Input", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class UInputMappingContext> _MappingContext;
+
+	/** Camera boom positioning the camera behind the character */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GSP|Camera", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<USpringArmComponent> _CameraBoom;
+
+	/** Follow camera */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GSP|Camera", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UCameraComponent> _FollowCamera;
+
+	/** Projectile Spawn Point */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GSP", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UArrowComponent> _ProjectileSpawnPoint;
+
+	/**
+	* Getters for attributes from GSPAttributeSet
+	**/
+
+	UFUNCTION(BlueprintCallable, Category = "GSP|Character|Attributes")
+	int32 GetCharacterLevel() const;
+
+	UFUNCTION(BlueprintCallable, Category = "GSP|GSCharacter|Attributes")
+	float GetHealth() const;
+
+	UFUNCTION(BlueprintCallable, Category = "GSP|GSCharacter|Attributes")
+	float GetMaxHealth() const;
+
+	UFUNCTION(BlueprintCallable, Category = "GSP|GSCharacter|Attributes")
+	float GetStamina() const;
+
+	UFUNCTION(BlueprintCallable, Category = "GSP|GSCharacter|Attributes")
+	float GetMaxStamina() const;
+
+	UFUNCTION(BlueprintCallable, Category = "GSP|GSCharacter|Attributes")
+	float GetShield() const;
+
+	UFUNCTION(BlueprintCallable, Category = "GSP|GSCharacter|Attributes")
+	float GetMaxShield() const;
+
+	// Gets the Current value of MoveSpeed
+	UFUNCTION(BlueprintCallable, Category = "GSP|GSCharacter|Attributes")
+	float GetMoveSpeed() const;
+
+	// Gets the Base value of MoveSpeed
+	UFUNCTION(BlueprintCallable, Category = "GSP|GSCharacter|Attributes")
+	float GetMoveSpeedBaseValue() const;
+
+public:
 	UFUNCTION(BlueprintCallable, Category = "GSP|Input")
 	APlayerController* GetGSPPlayerController() const;
 
-	UFUNCTION(BlueprintCallable, Category = "GSP|Input")
+	UFUNCTION(BlueprintCallable, Category = "GSP|GSCharacter|Input")
 	UEnhancedInputComponent* GetEnhancedInputComponent() const;
 
 	/** IAbilitySystemInterface */
-	UFUNCTION(BlueprintCallable, Category = "GSP|Ability")
+	UFUNCTION(BlueprintCallable, Category = "GSP|GSCharacter|Ability")
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
-	UFUNCTION(BlueprintCallable, Category = "GSP|Ability")
+	UFUNCTION(BlueprintCallable, Category = "GSP|GSCharacter|Ability")
 	UGSPAbilitySystemComponent* GetGSPAbilitySystemComponent() const;
 	/** End of IAbilitySystemInterface */
 
-	UFUNCTION(BlueprintCallable, Category = "GSP|Health")
-	class UGSPHealthComponent* GetHealthComponent() const;
-public:
-	/** UGSPMovementAttributeSet */
-	UFUNCTION(BlueprintCallable, Category = "Attribute")
-	const UGSPMovementAttributeSet* GetMovementAttributeSet() const;
-	/** End of UGSPMovementAttributeSet */
-
-	/** UGSPCharacterAttributeSet */
-	UFUNCTION(BlueprintCallable, Category = "Attribute")
-	const UGSPCharacterAttributeSet* GetCharacterAttributeSet() const;
-	/** End of UGSPCharacterAttributeSet */
-
-	/** UGSPCombatAttributeSet */
-	UFUNCTION(BlueprintCallable, Category = "Attribute")
-	const UGSPCombatAttributeSet* GetCombatAttributeSet() const;
-	/** End of UGSPCombatAttributeSet */
-
-public:
 	/** IGameplayTagAssetInterface */
 	UFUNCTION(BlueprintCallable, Category = "GSP|GameplayTags")
 	virtual void GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const override;
@@ -90,32 +146,12 @@ protected:
 	/** APawn interface */
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 	/** End of APawn interface */
-	
-protected:
-	/* Ability Component */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GSP|Ability")
-	UGSPAbilitySystemComponent* _AbilitySystemComponent;
 
-	/* Health Component */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GSP|Character")
-	UGSPHealthComponent* _HealthComponent;
+	/**
+	* Setters for Attributes. Only use these in special cases, otherwise use a GE to change Attributes.
+	*/
 
-	/** MappingContext */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GSP|Input", meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<class UInputMappingContext> _MappingContext;
-
-private:
-	/** Camera boom positioning the camera behind the character */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GSP|Camera", meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<USpringArmComponent> _CameraBoom;
-
-	/** Follow camera */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GSP|Camera", meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<UCameraComponent> _FollowCamera;
-
-	/** Projectile Spawn Point */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GSP", meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<UArrowComponent> _ProjectileSpawnPoint;
+	virtual void SetHealth(float Health);
+	virtual void SetStamina(float Stamina);
+	virtual void SetShield(float Shield);
 };
-
-#pragma once
