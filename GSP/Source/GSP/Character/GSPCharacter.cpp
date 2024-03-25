@@ -172,7 +172,7 @@ void AGSPCharacter::PossessedBy(AController* NewController)
 		}
 		else
 		{
-			UE_LOG(LogTemp, Error, TEXT("Missing _DefaultAttributes or _AbilitySystemComponent for %s."), *GetName());
+			UE_LOG(GSPCharacter, Error, TEXT("Missing _DefaultAttributes or _AbilitySystemComponent for %s."), *GetName());
 		}
 
 		// Initalize our abilities and input bindings
@@ -191,7 +191,7 @@ void AGSPCharacter::PossessedBy(AController* NewController)
 		// Remove Dead tag
 		_AbilitySystemComponent->RemoveActiveEffectsWithGrantedTags(FGameplayTagContainer(DeadTag));
 
-		UE_LOG(LogTemp, Warning, TEXT("AGSPCharacter::PossessedBy %s"), *GetName());
+		UE_LOG(GSPCharacter, Warning, TEXT("AGSPCharacter::PossessedBy %s"), *GetName());
 	}
 }
 
@@ -301,13 +301,13 @@ void AGSPCharacter::BeginPlay()
 
 	if(!_AbilitySystemComponent)
 	{
-		UE_LOG(LogTemp, Error, TEXT("%s() Missing _AbilitySystemComponent for %s. Please fill in the character's Blueprint."), *FString(__FUNCTION__), *GetName());
+		UE_LOG(GSPCharacter, Error, TEXT("%s() Missing _AbilitySystemComponent for %s. Please fill in the character's Blueprint."), *FString(__FUNCTION__), *GetName());
 		return;
 	}
 
 	if (!_DefaultAttributes)
 	{
-		UE_LOG(LogTemp, Error, TEXT("%s() Missing _DefaultAttributes for %s. Please fill in the character's Blueprint."), *FString(__FUNCTION__), *GetName());
+		UE_LOG(GSPCharacter, Error, TEXT("%s() Missing _DefaultAttributes for %s. Please fill in the character's Blueprint."), *FString(__FUNCTION__), *GetName());
 		return;
 	}
 }

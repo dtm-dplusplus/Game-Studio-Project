@@ -31,54 +31,54 @@ public:
 
 	UGSPAttributeSet* GetGSPAttributeSet() const;
 
-	UFUNCTION(BlueprintCallable, Category = "GSP|PlayerState")
+	UFUNCTION(BlueprintCallable, Category = "GSP|GSPCharacter|PlayerState")
 	bool IsAlive() const;
 
 	/** Getters for attributes from GSPAttributeSetBase. Returns Current Value unless otherwise specified. */
 
-	UFUNCTION(BlueprintCallable, Category = "GSP|PlayerState|Attributes")
+	UFUNCTION(BlueprintCallable, Category = "GSP|GSPCharacter|PlayerState|Attributes")
 	float GetHealth() const;
 
-	UFUNCTION(BlueprintCallable, Category = "GSP|PlayerState|Attributes")
+	UFUNCTION(BlueprintCallable, Category = "GSP|GSPCharacter|PlayerState|Attributes")
 	float GetMaxHealth() const;
 
-	UFUNCTION(BlueprintCallable, Category = "GSP|PlayerState|Attributes")
+	UFUNCTION(BlueprintCallable, Category = "GSP|GSPCharacter|PlayerState|Attributes")
 	float GetHealthRegenRate() const;
 
-	UFUNCTION(BlueprintCallable, Category = "GSP|PlayerState|Attributes")
+	UFUNCTION(BlueprintCallable, Category = "GSP|GSPCharacter|PlayerState|Attributes")
 	float GetStamina() const;
 
-	UFUNCTION(BlueprintCallable, Category = "GSP|PlayerState|Attributes")
+	UFUNCTION(BlueprintCallable, Category = "GSP|GSPCharacter|PlayerState|Attributes")
 	float GetMaxStamina() const;
 
-	UFUNCTION(BlueprintCallable, Category = "GSP|PlayerState|Attributes")
+	UFUNCTION(BlueprintCallable, Category = "GSP|GSPCharacter|PlayerState|Attributes")
 	float GetStaminaRegenRate() const;
 
-	UFUNCTION(BlueprintCallable, Category = "GSP|PlayerState|Attributes")
+	UFUNCTION(BlueprintCallable, Category = "GSP|GSPCharacter|PlayerState|Attributes")
 	float GetShield() const;
 
-	UFUNCTION(BlueprintCallable, Category = "GSP|PlayerState|Attributes")
+	UFUNCTION(BlueprintCallable, Category = "GSP|GSPCharacter|PlayerState|Attributes")
 	float GetMaxShield() const;
 
-	UFUNCTION(BlueprintCallable, Category = "GSP|PlayerState|Attributes")
+	UFUNCTION(BlueprintCallable, Category = "GSP|GSPCharacter|PlayerState|Attributes")
 	float GetShieldRegenRate() const;
 
-	UFUNCTION(BlueprintCallable, Category = "GSP|PlayerState|Attributes")
+	UFUNCTION(BlueprintCallable, Category = "GSP|GSPCharacter|PlayerState|Attributes")
 	float GetArmor() const;
 
-	UFUNCTION(BlueprintCallable, Category = "GSP|PlayerState|Attributes")
+	UFUNCTION(BlueprintCallable, Category = "GSP|GSPCharacter|PlayerState|Attributes")
 	float GetMoveSpeed() const;
 
-	UFUNCTION(BlueprintCallable, Category = "GSP|PlayerState|Attributes")
+	UFUNCTION(BlueprintCallable, Category = "GSP|GSPCharacter|PlayerState|Attributes")
 	int32 GetCharacterLevel() const;
 
-	UFUNCTION(BlueprintCallable, Category = "GSP|PlayerState|Attributes")
+	UFUNCTION(BlueprintCallable, Category = "GSP|GSPCharacter|PlayerState|Attributes")
 	int32 GetXP() const;
 
 protected:
 	FGameplayTag _DeadTag;
 
-	UPROPERTY(EditAnywhere, Category = "GSP|Abilities")
+	UPROPERTY()
 	class UGSPAbilitySystemComponent* _AbilitySystemComponent;
 
 	UPROPERTY()
