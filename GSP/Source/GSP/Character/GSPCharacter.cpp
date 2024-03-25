@@ -21,8 +21,8 @@ AGSPCharacter::AGSPCharacter(const FObjectInitializer& ObjectInitializer):
 {
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
-	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Overlap);
-	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Overlap);
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
 
 	// Don't rotate when the controller rotates. Let that just affect the camera.
 	bUseControllerRotationPitch = false;
@@ -57,11 +57,13 @@ AGSPCharacter::AGSPCharacter(const FObjectInitializer& ObjectInitializer):
 	_ProjectileSpawnPoint->SetupAttachment(RootComponent);
 
 	// Set up Ability component
-	_AbilitySystemComponent = CreateDefaultSubobject<UGSPAbilitySystemComponent>(TEXT("_AbilitySystemComponent"));
+	//_AbilitySystemComponent = CreateDefaultSubobject<UGSPAbilitySystemComponent>(TEXT("_AbilitySystemComponent"));
 
 
-	// _AbilitySystemComponent needs to be updated at a high frequency.
+	// _AbilitySystemComponent needs to be updated at a high frequency
 	NetUpdateFrequency = 100.0f;
+	bAlwaysRelevant = true;
+	PrimaryActorTick.bCanEverTick = false;
 
 	// Cache tags
 	DeadTag = FGameplayTag::RequestGameplayTag("Actor.State.Dead");
@@ -82,29 +84,64 @@ void AGSPCharacter::FinishDeath()
 	Destroy();
 }
 
-void AGSPCharacter::InitializeAttributes()
+void AGSPCharacter::InitializeAbilities()
 {
-	if (!IsValid(_AbilitySystemComponent))
+	// Reset/Remove abilities if we had already added them
+	//{
+	//	for (UAttributeSet* AttribSetInstance : AddedAttributes)
+	//	{
+	//		RemoveSpawnedAttribute(AttribSetInstance);
+	//	}
+
+	//	for (FGameplayAbilitySpecHandle AbilityHandle : DefaultAbilityHandles)
+	//	{
+	//		SetRemoveAbilityOnEnd(AbilityHandle);
+	//	}
+
+	//	AddedAttributes.Empty(DefaultAttributes.Num());
+	//	DefaultAbilityHandles.Empty(DefaultAbilities.Num());
+	//}
+
+	// Default abilities
+	if(_AbilitySystemComponent)
 	{
-		return;
+		for (auto& [InputAction, Ability] : DefaultAbilities)
+		{
+			// Give Ability
+			if (*Ability)
+			{
+				FGameplayAbilitySpecHandle AbilitySpec = _AbilitySystemComponent->GiveAbility(FGameplayAbilitySpec(Ability));
+
+				// If an InputAction was specified, bind it to the ability
+				if (InputAction)
+				{
+					_AbilitySystemComponent->SetInputBinding(InputAction, AbilitySpec);
+				}
+
+				// Add to DefaultAbilityHandles
+				_AbilitySystemComponent->DefaultAbilityHandles.Add(AbilitySpec);
+			}
+		}
 	}
 
-	if (!_DefaultAttributes)
-	{
-		UE_LOG(LogTemp, Error, TEXT("%s() Missing _DefaultAttributes for %s. Please fill in the character's Blueprint."), *FString(__FUNCTION__), *GetName());
-		return;
-	}
-
-	// Can run on Server and Client
-	FGameplayEffectContextHandle EffectContext = _AbilitySystemComponent->MakeEffectContext();
-	EffectContext.AddSourceObject(this);
-
-	FGameplayEffectSpecHandle NewHandle = _AbilitySystemComponent->MakeOutgoingSpec(_DefaultAttributes, GetCharacterLevel(), EffectContext);
-	if (NewHandle.IsValid())
-	{
-		FActiveGameplayEffectHandle ActiveGEHandle = _AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*NewHandle.Data.Get());
-	}
+	// Default attributes
+	/*{
+		for (const FGSPAttributeInitializer& Attributes : DefaultAttributes)
+		{
+			if (Attributes.AttributeSetType)
+			{
+				UGSPAttributeSet* NewAttribSet = NewObject<UGSPAttributeSet>(this, Attributes.AttributeSetType);
+				if (Attributes.InitializationData)
+				{
+					NewAttribSet->InitFromMetaDataTable(Attributes.InitializationData);
+				}
+				AddedAttributes.Add(NewAttribSet);
+				AddAttributeSetSubobject(NewAttribSet);
+			}
+		}
+	}*/
 }
+
 
 void AGSPCharacter::PossessedBy(AController* NewController)
 {
@@ -119,20 +156,29 @@ void AGSPCharacter::PossessedBy(AController* NewController)
 		PS->GetAbilitySystemComponent()->InitAbilityActorInfo(PS, this);
 
 		// Set the _AttributeSet for convenience attribute functions
-		AttributeSetBase = PS->GetAttributeSetBase();
+		AttributeSetBase = PS->GetGSPAttributeSet();
 
-		// If we handle players disconnecting and rejoining in the future, we'll have to change this so that possession from rejoining doesn't reset attributes.
-		// For now assume possession = spawn/respawn.
-		InitializeAttributes();
+		// Apply our defualt gameplay effect to create our attributes
+		if (_AbilitySystemComponent && _DefaultAttributes)
+		{
+			FGameplayEffectContextHandle EffectContext = _AbilitySystemComponent->MakeEffectContext();
+			EffectContext.AddSourceObject(this);
+
+			FGameplayEffectSpecHandle NewHandle = _AbilitySystemComponent->MakeOutgoingSpec(_DefaultAttributes, GetCharacterLevel(), EffectContext);
+			if (NewHandle.IsValid())
+			{
+				FActiveGameplayEffectHandle ActiveGEHandle = _AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*NewHandle.Data.Get());
+			}
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("Missing _DefaultAttributes or _AbilitySystemComponent for %s."), *GetName());
+		}
+
+		// Initalize our abilities and input bindings
+		InitializeAbilities();
 
 		//AddStartupEffects();
-
-		//AddCharacterAbilities();
-
-		if (APlayerController* PC = Cast<APlayerController>(GetController()))
-		{
-			//PC->CreateHUD();
-		}
 
 		if (_AbilitySystemComponent->GetTagCount(DeadTag) > 0)
 		{

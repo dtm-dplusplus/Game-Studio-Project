@@ -10,19 +10,19 @@
 AGSPPlayerState::AGSPPlayerState()
 {
 	// Create ability system component, and set it to be explicitly replicated
-	_AbilitySystemComponent = CreateDefaultSubobject<UGSPAbilitySystemComponent>(TEXT("_AbilitySystemComponent"));
+	_AbilitySystemComponent = CreateDefaultSubobject<UGSPAbilitySystemComponent>(TEXT("_AbilitySystem")); //Component
 	_AbilitySystemComponent->SetIsReplicated(true);
-
+	
 	// Mixed mode means we only are replicated the GEs to ourself
 	_AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
-
+	
 	// Create the attribute set, this replicates by default
 	// automatically registers the AttributeSet with the _AbilitySystemComponent
 	_AttributeSet = CreateDefaultSubobject<UGSPAttributeSet>(TEXT("AttributeSet"));
-
+	
 	// Set PlayerState's NetUpdateFrequency to the same as the Character.
 	NetUpdateFrequency = 100.0f;
-
+	
 	_DeadTag = FGameplayTag::RequestGameplayTag("Actor.State.Dead");
 }
 
@@ -31,7 +31,7 @@ UAbilitySystemComponent* AGSPPlayerState::GetAbilitySystemComponent() const
 	return _AbilitySystemComponent;
 }
 
-UGSPAttributeSet* AGSPPlayerState::GetAttributeSetBase() const
+UGSPAttributeSet* AGSPPlayerState::GetGSPAttributeSet() const
 {
 	return _AttributeSet;
 }

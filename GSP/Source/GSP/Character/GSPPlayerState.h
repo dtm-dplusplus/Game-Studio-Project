@@ -29,7 +29,7 @@ public:
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	/** End IAbilitySystemInterface */
 
-	UGSPAttributeSet* GetAttributeSetBase() const;
+	UGSPAttributeSet* GetGSPAttributeSet() const;
 
 	UFUNCTION(BlueprintCallable, Category = "GSP|PlayerState")
 	bool IsAlive() const;

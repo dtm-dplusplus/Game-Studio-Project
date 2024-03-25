@@ -24,7 +24,7 @@ struct FAbilityInputBinding
 };
 
 USTRUCT(BlueprintType)
-struct FAbilityInputAction
+struct FGSPAbilityInputAction
 {
 	GENERATED_BODY()
 
@@ -53,27 +53,21 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "GSP|Ability")
 	void ClearAbilityBindings(UInputAction* InputAction);
 
-	UPROPERTY(EditAnywhere, Category = "GSP|Ability")
-	TArray<FAbilityInputAction> DefaultAbilities;
-
-	virtual void InitAbilityActorInfo(AActor* InOwnerActor, AActor* InAvatarActor) override;
-
 	UFUNCTION(BlueprintCallable, Category = "GSP|Ability")
 	FGameplayAbilitySpecHandle GrantAbilityOfType(TSubclassOf<UGameplayAbility> AbilityType, bool bRemoveAfterActivation);
 
-protected:
-	void GrantDefaultAbilitiesAndAttributes();
-
+	virtual void InitAbilityActorInfo(AActor* InOwnerActor, AActor* InAvatarActor) override;
 	//~ Begin UObject interface
 	virtual void BeginPlay() override;
 	virtual void BeginDestroy() override;
 	//~ End UObject interface
 
 	/** Handles generated from default abilities - These act as instances of the ability*/
+	UPROPERTY(transient)
 	TArray<FGameplayAbilitySpecHandle> DefaultAbilityHandles;
 
 	/** Attributes added during gameplay*/
-	UPROPERTY(VisibleInstanceOnly, transient, Category = "GSP|Ability")
+	UPROPERTY(transient)
 	TArray<UAttributeSet*> AddedAttributes;
 
 private:

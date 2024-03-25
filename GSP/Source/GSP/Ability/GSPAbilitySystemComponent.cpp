@@ -19,71 +19,15 @@ namespace AbilityInputBindingComponent_Impl
 	}
 }
 
-
-
-
-void UGSPAbilitySystemComponent::GrantDefaultAbilitiesAndAttributes()
-{
-	// Reset/Remove abilities if we had already added them
-	//{
-	//	for (UAttributeSet* AttribSetInstance : AddedAttributes)
-	//	{
-	//		RemoveSpawnedAttribute(AttribSetInstance);
-	//	}
-
-	//	for (FGameplayAbilitySpecHandle AbilityHandle : DefaultAbilityHandles)
-	//	{
-	//		SetRemoveAbilityOnEnd(AbilityHandle);
-	//	}
-
-	//	AddedAttributes.Empty(DefaultAttributes.Num());
-	//	DefaultAbilityHandles.Empty(DefaultAbilities.Num());
-	//}
-
-	// Default abilities
-	{
-		DefaultAbilityHandles.Reserve(DefaultAbilities.Num());
-		for (auto& [InputAction, Ability] : DefaultAbilities)
-		{
-			// Give Ability
-			if (*Ability)
-			{
-				DefaultAbilityHandles.Add(GiveAbility(FGameplayAbilitySpec(Ability)));
-			}
-
-			// Bind Input to Ability
-			if (InputAction)
-			{
-				SetInputBinding(InputAction, DefaultAbilityHandles.Last());
-			}
-		}
-	}
-
-	// Default attributes
-	/*{
-		for (const FGSPAttributeInitializer& Attributes : DefaultAttributes)
-		{
-			if (Attributes.AttributeSetType)
-			{
-				UGSPAttributeSet* NewAttribSet = NewObject<UGSPAttributeSet>(this, Attributes.AttributeSetType);
-				if (Attributes.InitializationData)
-				{
-					NewAttribSet->InitFromMetaDataTable(Attributes.InitializationData);
-				}
-				AddedAttributes.Add(NewAttribSet);
-				AddAttributeSetSubobject(NewAttribSet);
-			}
-		}
-	}*/
-}
-
 void UGSPAbilitySystemComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	
-
-	GrantDefaultAbilitiesAndAttributes();
+	if (UGSPGlobalAbilitySystem* GlobalAbilitySystem = UWorld::GetSubsystem<UGSPGlobalAbilitySystem>(GetWorld()))
+	{
+		GlobalAbilitySystem->AddASC(this);
+		UE_LOG(GSPAbility, Warning, TEXT("InitAbilityActorInfo: %s"), *GetName());
+	}
 }
 
 void UGSPAbilitySystemComponent::BeginDestroy()
@@ -94,17 +38,6 @@ void UGSPAbilitySystemComponent::BeginDestroy()
 	}
 
 	Super::BeginDestroy();
-}
-
-void UGSPAbilitySystemComponent::InitAbilityActorInfo(AActor* InOwnerActor, AActor* InAvatarActor)
-{
-	Super::InitAbilityActorInfo(InOwnerActor, InAvatarActor);
-
-	if (UGSPGlobalAbilitySystem* GlobalAbilitySystem = UWorld::GetSubsystem<UGSPGlobalAbilitySystem>(GetWorld()))
-	{
-		GlobalAbilitySystem->AddASC(this);
-		UE_LOG(GSPAbility, Warning, TEXT("InitAbilityActorInfo: %s"), *GetName());
-	}
 }
 
 FGameplayAbilitySpecHandle UGSPAbilitySystemComponent::GrantAbilityOfType(TSubclassOf<UGameplayAbility> AbilityType,
@@ -121,6 +54,11 @@ FGameplayAbilitySpecHandle UGSPAbilitySystemComponent::GrantAbilityOfType(TSubcl
 	return AbilityHandle;
 }
 
+void UGSPAbilitySystemComponent::InitAbilityActorInfo(AActor* InOwnerActor, AActor* InAvatarActor)
+{
+	Super::InitAbilityActorInfo(InOwnerActor, InAvatarActor);
+}
+
 
 FGameplayAbilitySpec* UGSPAbilitySystemComponent::FindAbilitySpec(FGameplayAbilitySpecHandle Handle)
 {
@@ -129,13 +67,16 @@ FGameplayAbilitySpec* UGSPAbilitySystemComponent::FindAbilitySpec(FGameplayAbili
 
 UEnhancedInputComponent* UGSPAbilitySystemComponent::GetEnhancedInputComponent() const
 {
-	if (AActor* Owner = GetOwner())
+	// We Get the avatar actor instead of the owner actor because the owner actor is the player state
+	// We want the input component from the player character, not state
+	if(const AActor* Avatar = GetAvatarActor())
 	{
-		if (const APlayerController* PC = Cast<APlayerController>(Owner->GetInstigatorController()))
+		if (const APlayerController* PC = Cast<APlayerController>(Avatar->GetInstigatorController()))
 		{
-				return Cast<UEnhancedInputComponent>(PC->InputComponent);
+			return Cast<UEnhancedInputComponent>(PC->InputComponent);
 		}
 	}
+
 	return nullptr;	
 }
 
