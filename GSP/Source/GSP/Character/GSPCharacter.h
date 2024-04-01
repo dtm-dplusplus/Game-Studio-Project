@@ -151,7 +151,7 @@ protected:
 
 	/**
 	* Setters for Attributes. Only use these in special cases, otherwise use a GE to change Attributes.
-	*/
+	**/
 	virtual void SetHealth(float Health);
 	virtual void SetStamina(float Stamina);
 	virtual void SetShield(float Shield);

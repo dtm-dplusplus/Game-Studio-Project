@@ -9,6 +9,11 @@
 class UNiagaraSystem;
 class UNiagaraComponent;
 class UGameplayEffect;
+class UGSPAttributeSet;
+struct FGSPAbilityInputAction;
+struct FGameplayAbilitySpec;
+class UGameplayAbility;
+class UGSPAbilitySystemComponent;
 
 DECLARE_LOG_CATEGORY_EXTERN(GSPWeapon, Log, All);
 
