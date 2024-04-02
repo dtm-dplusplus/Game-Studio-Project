@@ -123,23 +123,6 @@ void AGSPCharacter::InitializeAbilities()
 			}
 		}
 	}
-
-	// Default attributes
-	/*{
-		for (const FGSPAttributeInitializer& Attributes : DefaultAttributes)
-		{
-			if (Attributes.AttributeSetType)
-			{
-				UGSPAttributeSet* NewAttribSet = NewObject<UGSPAttributeSet>(this, Attributes.AttributeSetType);
-				if (Attributes.InitializationData)
-				{
-					NewAttribSet->InitFromMetaDataTable(Attributes.InitializationData);
-				}
-				AddedAttributes.Add(NewAttribSet);
-				AddAttributeSetSubobject(NewAttribSet);
-			}
-		}
-	}*/
 }
 
 
