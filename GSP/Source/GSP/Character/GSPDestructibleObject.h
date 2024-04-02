@@ -4,12 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "GSPDestructibleObject.generated.h"
 #include "AbilitySystemInterface.h"
 #include "AttributeSet.h"
 #include "GameplayTagContainer.h"
 #include "GameFramework/PlayerState.h"
-
+#include "GSPDestructibleObject.generated.h"
 class UNiagaraSystem;
 class UNiagaraComponent;
 class UGameplayEffect;
@@ -18,15 +17,17 @@ struct FGSPAbilityInputAction;
 struct FGameplayAbilitySpec;
 class UGameplayAbility;
 class UGSPAbilitySystemComponent;
-
 UCLASS()
 class GSP_API AGSPDestructibleObject : public AActor, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
-	
 public:	
 	// Sets default values for this actor's properties
 	AGSPDestructibleObject();
+
+	/** IAbilitySystemInterface */
+	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+	/** End IAbilitySystemInterface */
 
 	UGSPAttributeSet* GetGSPAttributeSet() const;
 
@@ -36,7 +37,7 @@ protected:
 
 	/* Ability Component */
 	UPROPERTY()
-	UGSPAbilitySystemComponent* _AbilitySystemComponent;
+	class UGSPAbilitySystemComponent* _AbilitySystemComponent;
 
 public:	
 	// Called every frame
