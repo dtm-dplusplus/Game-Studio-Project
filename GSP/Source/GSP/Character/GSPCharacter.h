@@ -52,6 +52,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "GSP|GSPCharacter|Attributes")
 	float GetHealth() const;
 
+	// Returns health as a percentage of max health
+	UFUNCTION(BlueprintCallable, Category = "GSP|GSPCharacter|Attributes")
+	float GetHealthNormalized() const;
+
 	UFUNCTION(BlueprintCallable, Category = "GSP|GSPCharacter|Attributes")
 	float GetMaxHealth() const;
 

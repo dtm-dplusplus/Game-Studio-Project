@@ -163,6 +163,7 @@ void AGSPCharacter::PossessedBy(AController* NewController)
 
 		//AddStartupEffects();
 
+		// If we are dead, respawn with max attributes
 		if (_AbilitySystemComponent->GetTagCount(DeadTag) > 0)
 		{
 			// Set to max for respawn
@@ -193,6 +194,16 @@ float AGSPCharacter::GetHealth() const
 	if(AttributeSetBase)
 	{
 		return AttributeSetBase->GetHealth();
+	}
+
+	return 0.0f;
+}
+
+float AGSPCharacter::GetHealthNormalized() const
+{
+	if (AttributeSetBase)
+	{
+		return AttributeSetBase->GetHealth() / AttributeSetBase->GetMaxHealth();
 	}
 
 	return 0.0f;

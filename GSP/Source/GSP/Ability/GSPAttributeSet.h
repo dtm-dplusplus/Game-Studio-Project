@@ -16,6 +16,7 @@
 
 // Delegate used to broadcast attribute events.
 //DECLARE_MULTICAST_DELEGATE_FourParams(FGSPAttributeEvent, AActor* /*EffectInstigator*/, AActor* /*EffectCauser*/, const FGameplayEffectSpec& /*EffectSpec*/, float /*EffectMagnitude*/);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FGSPAttributeEvent, float NewValue, float OldValue);
 
 UCLASS()
 class GSP_API UGSPAttributeSet : public UAttributeSet
@@ -30,6 +31,8 @@ public:
 	// Negative changes to Health should go through Damage meta attribute.
 	UPROPERTY(BlueprintReadOnly, Category = "Health", ReplicatedUsing = OnRep_Health)
 	FGameplayAttributeData Health;
+
+	FGSPAttributeEvent HealthChangeDelegate;
 	ATTRIBUTE_ACCESSORS(UGSPAttributeSet, Health)
 
 	// MaxHealth is its own attribute since GameplayEffects may modify it

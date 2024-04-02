@@ -131,6 +131,7 @@ void UGSPAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbac
 				//const float NewHealth = GetHealth() - DamageAfterShield;
 				const float NewHealth = GetHealth() - LocalDamageDone;
 				SetHealth(FMath::Clamp(NewHealth, 0.0f, GetMaxHealth()));
+				HealthChangeDelegate.Broadcast(GetHealth(), GetMaxHealth());
 				UE_LOG(LogTemp, Log, TEXT("%s() %s Health: %f"), *FString(__FUNCTION__), *GetOwningActor()->GetName(), NewHealth);
 			}
 
