@@ -8,6 +8,7 @@
 #include "GameplayTagAssetInterface.h"
 #include "GSPCharacter.generated.h"
 
+class AGSPPlayerState;
 class UGSPAttributeSet;
 struct FGSPAbilityInputAction;
 struct FGameplayAbilitySpec;
@@ -99,10 +100,6 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "GSP|GSPCharacter|Abilities")
 	TArray<FGSPAbilityInputAction> DefaultAbilities;
 
-	/** MappingContext */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GSP|GSPCharacter|Input", meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<class UInputMappingContext> _MappingContext;
-
 	/** Camera boom positioning the camera behind the character */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GSP|GSPCharacter|Camera", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<USpringArmComponent> _CameraBoom;
@@ -119,8 +116,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "GSP|GSPCharacter|Input")
 	APlayerController* GetGSPPlayerController() const;
 
-	UFUNCTION(BlueprintCallable, Category = "GSP|GSPCharacter|Input")
-	UEnhancedInputComponent* GetEnhancedInputComponent() const;
+	UFUNCTION(BlueprintCallable, Category = "GSP|GSPCharacter")
+	AGSPPlayerState* GetGSPPlayerState() const;
 
 	/** IAbilitySystemInterface */
 	UFUNCTION(BlueprintCallable, Category = "GSP|GSPCharacter|Ability")

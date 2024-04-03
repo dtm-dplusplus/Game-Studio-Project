@@ -1,7 +1,6 @@
 
 #include "GSPCharacter.h"
 
-#include "EnhancedInputComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/InputComponent.h"
@@ -130,7 +129,7 @@ void AGSPCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
 
-	if (AGSPPlayerState* PS = GetPlayerState<AGSPPlayerState>())
+	if (AGSPPlayerState* PS = Cast<AGSPPlayerState>(GetPlayerState()))
 	{
 		// Set the ASC on the Server. Clients do this in OnRep_PlayerState()
 		_AbilitySystemComponent = Cast<UGSPAbilitySystemComponent>(PS->GetAbilitySystemComponent());
@@ -171,7 +170,7 @@ void AGSPCharacter::PossessedBy(AController* NewController)
 			SetStamina(GetMaxStamina());
 			SetShield(GetMaxShield());
 		}
-
+		
 		// Remove Dead tag
 		_AbilitySystemComponent->RemoveActiveEffectsWithGrantedTags(FGameplayTagContainer(DeadTag));
 
@@ -284,15 +283,6 @@ void AGSPCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	//Add Input Mapping Context
-	if (const APlayerController* PC = Cast<APlayerController>(Controller))
-	{
-		if (const auto Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer()))
-		{
-			Subsystem->AddMappingContext(_MappingContext, 0);
-		}
-	}
-
 	if(!_AbilitySystemComponent)
 	{
 		UE_LOG(GSPCharacter, Error, TEXT("%s() Missing _AbilitySystemComponent for %s. Please fill in the character's Blueprint."), *FString(__FUNCTION__), *GetName());
@@ -302,7 +292,6 @@ void AGSPCharacter::BeginPlay()
 	if (!_DefaultAttributes)
 	{
 		UE_LOG(GSPCharacter, Error, TEXT("%s() Missing _DefaultAttributes for %s. Please fill in the character's Blueprint."), *FString(__FUNCTION__), *GetName());
-		return;
 	}
 }
 
@@ -346,12 +335,12 @@ APlayerController* AGSPCharacter::GetGSPPlayerController() const
 	return Cast<APlayerController>(GetController());
 }
 
-/////////////////////// Components //////////////////////
-UEnhancedInputComponent* AGSPCharacter::GetEnhancedInputComponent() const
+AGSPPlayerState* AGSPCharacter::GetGSPPlayerState() const
 {
-	return Cast<UEnhancedInputComponent>(GetGSPPlayerController()->InputComponent);
+	return Cast<AGSPPlayerState>(GetPlayerState());
 }
 
+/////////////////////// Components //////////////////////
 UAbilitySystemComponent* AGSPCharacter::GetAbilitySystemComponent() const
 {
 	return Cast<UAbilitySystemComponent>(_AbilitySystemComponent);

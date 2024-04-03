@@ -28,7 +28,7 @@ AGSPPlayerState::AGSPPlayerState()
 
 UAbilitySystemComponent* AGSPPlayerState::GetAbilitySystemComponent() const
 {
-	return _AbilitySystemComponent;
+	return Cast<UAbilitySystemComponent>(_AbilitySystemComponent);
 }
 
 UGSPAttributeSet* AGSPPlayerState::GetGSPAttributeSet() const
@@ -121,13 +121,13 @@ void AGSPPlayerState::BeginPlay()
 void AGSPPlayerState::HealthChanged(const FOnAttributeChangeData& Data)
 {
 	// Check for and handle death
-	AGSPCharacter* Hero = Cast<AGSPCharacter>(GetPawn());
-	if (IsValid(Hero) && !IsAlive() && !_AbilitySystemComponent->HasMatchingGameplayTag(_DeadTag))
+	AGSPCharacter* Character = Cast<AGSPCharacter>(GetPawn());
+	if (IsValid(Character) && !IsAlive() && !_AbilitySystemComponent->HasMatchingGameplayTag(_DeadTag))
 	{
-		if (Hero)
+		if (Character)
 		{
-			Hero->Death();
-			UE_LOG(LogTemp, Warning, TEXT("AGSPPlayerState::HealthChanged: %s is dead."), *Hero->GetName());
+			Character->Death();
+			UE_LOG(LogTemp, Warning, TEXT("AGSPPlayerState::HealthChanged: %s is dead."), *Character->GetName());
 		}
 	}
 

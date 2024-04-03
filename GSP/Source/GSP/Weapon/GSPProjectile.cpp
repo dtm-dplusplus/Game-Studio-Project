@@ -9,6 +9,7 @@
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
+#include "GSP/Character/GSPPlayerState.h"
 
 DEFINE_LOG_CATEGORY(GSPWeapon)
 
@@ -46,16 +47,20 @@ void AGSPProjectile::BeginPlay()
 
 void AGSPProjectile::RecieveHit(AActor* SelfActor, AActor* OtherActor, FVector NormalImpulse, const FHitResult& Hit)
 {
-	UE_LOG(GSPWeapon, Warning, TEXT("Projectile hit %s"), *OtherActor->GetName());
 
 	if (const AGSPCharacter* Character = Cast<AGSPCharacter>(OtherActor); _DamageEffect && Character)
 	{
-		if(UAbilitySystemComponent* Asc = Character->GetAbilitySystemComponent())
-		{
-			const FGameplayEffectContextHandle EffectContext = Asc->MakeEffectContext();
+		UE_LOG(GSPWeapon, Warning, TEXT("Projectile hit %s"), *Character->GetName());
 
-			UE_LOG(GSPWeapon, Warning, TEXT("Applying damage effect to %s"), *Character->GetName());
-			Asc->BP_ApplyGameplayEffectToSelf(_DamageEffect, 0.0, EffectContext);
+		if(const AGSPPlayerState* PS = Character->GetGSPPlayerState())
+		{
+			if (UAbilitySystemComponent* ASC = PS->GetAbilitySystemComponent())
+			{
+				const FGameplayEffectContextHandle EffectContext = ASC->MakeEffectContext();
+
+				UE_LOG(GSPWeapon, Warning, TEXT("Applying damage effect to %s"), *Character->GetName());
+				ASC->BP_ApplyGameplayEffectToSelf(_DamageEffect, 0.0, EffectContext);
+			}
 		}
 	}
 
