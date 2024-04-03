@@ -16,6 +16,8 @@
 
 // Delegate used to broadcast attribute events.
 //DECLARE_MULTICAST_DELEGATE_FourParams(FGSPAttributeEvent, AActor* /*EffectInstigator*/, AActor* /*EffectCauser*/, const FGameplayEffectSpec& /*EffectSpec*/, float /*EffectMagnitude*/);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FGSPAttributeEvent, float, NewValuefloat, float, NewValueNorm);
+
 
 UCLASS()
 class GSP_API UGSPAttributeSet : public UAttributeSet
@@ -31,6 +33,9 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "Health", ReplicatedUsing = OnRep_Health)
 	FGameplayAttributeData Health;
 	ATTRIBUTE_ACCESSORS(UGSPAttributeSet, Health)
+
+	UPROPERTY(BlueprintAssignable, Category = "Health")
+	FGSPAttributeEvent HealthChangeDelegate;
 
 	// MaxHealth is its own attribute since GameplayEffects may modify it
 	UPROPERTY(BlueprintReadOnly, Category = "Health", ReplicatedUsing = OnRep_MaxHealth)
@@ -102,6 +107,7 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 protected:
+	virtual 
 	//FGameplayTag HeadShotTag;
 
 	// Helper function to proportionally adjust the value of an attribute when it's associated max attribute changes.
