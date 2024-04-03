@@ -85,7 +85,7 @@ protected:
 	UGSPAbilitySystemComponent* _AbilitySystemComponent;
 
 	// Reference to the _AttributeSet. It will live on the PlayerState or here if the character doesn't have a PlayerState.
-	UPROPERTY()
+	UPROPERTY(BlueprintReadWrite)
 	UGSPAttributeSet* AttributeSetBase;
 
 	FGameplayTag DeadTag;
