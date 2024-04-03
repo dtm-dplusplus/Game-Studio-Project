@@ -123,23 +123,6 @@ void AGSPCharacter::InitializeAbilities()
 			}
 		}
 	}
-
-	// Default attributes
-	/*{
-		for (const FGSPAttributeInitializer& Attributes : DefaultAttributes)
-		{
-			if (Attributes.AttributeSetType)
-			{
-				UGSPAttributeSet* NewAttribSet = NewObject<UGSPAttributeSet>(this, Attributes.AttributeSetType);
-				if (Attributes.InitializationData)
-				{
-					NewAttribSet->InitFromMetaDataTable(Attributes.InitializationData);
-				}
-				AddedAttributes.Add(NewAttribSet);
-				AddAttributeSetSubobject(NewAttribSet);
-			}
-		}
-	}*/
 }
 
 
@@ -180,6 +163,7 @@ void AGSPCharacter::PossessedBy(AController* NewController)
 
 		//AddStartupEffects();
 
+		// If we are dead, respawn with max attributes
 		if (_AbilitySystemComponent->GetTagCount(DeadTag) > 0)
 		{
 			// Set to max for respawn
@@ -210,6 +194,16 @@ float AGSPCharacter::GetHealth() const
 	if(AttributeSetBase)
 	{
 		return AttributeSetBase->GetHealth();
+	}
+
+	return 0.0f;
+}
+
+float AGSPCharacter::GetHealthNormalized() const
+{
+	if (AttributeSetBase)
+	{
+		return AttributeSetBase->GetHealth() / AttributeSetBase->GetMaxHealth();
 	}
 
 	return 0.0f;

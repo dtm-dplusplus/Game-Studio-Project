@@ -52,6 +52,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "GSP|GSPCharacter|Attributes")
 	float GetHealth() const;
 
+	// Returns health as a percentage of max health
+	UFUNCTION(BlueprintCallable, Category = "GSP|GSPCharacter|Attributes")
+	float GetHealthNormalized() const;
+
 	UFUNCTION(BlueprintCallable, Category = "GSP|GSPCharacter|Attributes")
 	float GetMaxHealth() const;
 
@@ -81,7 +85,7 @@ protected:
 	UGSPAbilitySystemComponent* _AbilitySystemComponent;
 
 	// Reference to the _AttributeSet. It will live on the PlayerState or here if the character doesn't have a PlayerState.
-	UPROPERTY()
+	UPROPERTY(BlueprintReadWrite)
 	UGSPAttributeSet* AttributeSetBase;
 
 	FGameplayTag DeadTag;
