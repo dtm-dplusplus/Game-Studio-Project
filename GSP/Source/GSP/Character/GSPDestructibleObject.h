@@ -31,6 +31,25 @@ public:
 
 	UGSPAttributeSet* GetGSPAttributeSet() const;
 
+	virtual void Death();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "GSP|GSPObject")
+	void OnDeath();
+
+	/** Call in BP once death actions are done */
+	UFUNCTION(BlueprintCallable, Category = "GSP|GSPObject")
+	virtual void FinishDeath();
+
+
+	UFUNCTION(BlueprintCallable, Category = "GSP|GSPObject|Attributes")
+	float GetHealth() const;
+
+	UFUNCTION(BlueprintCallable, Category = "GSP|GSPObject|Attributes")
+	float GetMaxHealth() const;
+
+	UFUNCTION(BlueprintCallable, Category = "GSP|GSPObject|Attributes")
+	float GetHealthRegenRate() const;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -39,13 +58,20 @@ protected:
 	UPROPERTY()
 	class UGSPAbilitySystemComponent* _AbilitySystemComponent;
 
+	UPROPERTY()
+	UGSPAttributeSet* _AttributeSet;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GSP|GSPObject|Abilities")
+	TSubclassOf<class UGameplayEffect> _DefaultAttributes;
+
+	FDelegateHandle HealthChangedHandler;
+
+	//virtual void HealthChanged(const FOnAttributeChangeData& Data);
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-
-	UPROPERTY()
-	UGSPAttributeSet* _AttributeSet;
 
 
 

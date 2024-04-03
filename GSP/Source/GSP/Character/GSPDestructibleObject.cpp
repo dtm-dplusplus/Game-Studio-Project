@@ -23,6 +23,49 @@ AGSPDestructibleObject::AGSPDestructibleObject()
 
 }
 
+
+//handles death of object
+void AGSPDestructibleObject::Death()
+{
+	OnDeath();
+}
+void AGSPDestructibleObject::FinishDeath()
+{
+	UE_LOG(LogTemp, Error, TEXT("Health on death: %f"), GetHealth());
+	Destroy();
+}
+
+
+//getters for attributes
+float AGSPDestructibleObject::GetHealth() const
+{
+	return _AttributeSet->GetHealth();
+}
+
+float AGSPDestructibleObject::GetMaxHealth() const
+{
+	return _AttributeSet->GetMaxHealth();
+}
+
+float AGSPDestructibleObject::GetHealthRegenRate() const
+{
+	return _AttributeSet->GetHealthRegenRate();
+}
+
+//getter for ability system component
+UAbilitySystemComponent* AGSPDestructibleObject::GetAbilitySystemComponent() const
+{
+	return(UAbilitySystemComponent*)_AbilitySystemComponent;
+}
+
+
+//getter for attribute set
+UGSPAttributeSet* AGSPDestructibleObject::GetGSPAttributeSet() const
+{
+	return _AttributeSet;
+}
+
+
 // Called when the game starts or when spawned
 void AGSPDestructibleObject::BeginPlay()
 {
@@ -31,25 +74,30 @@ void AGSPDestructibleObject::BeginPlay()
 	{
 		UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), _NiagaraSpawnFX, GetActorLocation());
 	}
-	
+
+	if (_AbilitySystemComponent)
+	{
+		// Health change callbacks
+		//HealthChangedHandler = _AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(_AttributeSet->GetHealthAttribute()).AddUObject(this, &AGSPDestructibleObject::HealthChanged);
+	}
+	_AttributeSet->SetMaxHealth(200.0f);
+	_AttributeSet->SetHealth(200.0f);
 }
 
+//handles health changing and death
+//void AGSPDestructibleObject::HealthChanged(const FOnAttributeChangeData& Data)
 
-UAbilitySystemComponent* AGSPDestructibleObject::GetAbilitySystemComponent() const
-{
-	return(UAbilitySystemComponent*) _AbilitySystemComponent;
-}
 
 // Called every frame
 void AGSPDestructibleObject::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
+	if (GetHealth() <= 0)
+	{
+		Death();
+	}
 }
 
-UGSPAttributeSet* AGSPDestructibleObject::GetGSPAttributeSet() const
-{
-	return _AttributeSet;
-}
+
 
 

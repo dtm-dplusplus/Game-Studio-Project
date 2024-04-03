@@ -84,6 +84,8 @@ protected:
 	UPROPERTY()
 	UGSPAttributeSet* _AttributeSet;
 
+	
+
 	// Attribute changed delegate handles
 	FDelegateHandle HealthChangedDelegateHandle;
 

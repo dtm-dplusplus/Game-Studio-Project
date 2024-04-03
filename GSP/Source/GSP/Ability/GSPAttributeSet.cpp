@@ -3,6 +3,7 @@
 #include "GSPAttributeSet.h"
 
 #include "../Character/GSPCharacter.h"
+#include "../Character/GSPDestructibleObject.h"
 #include "GameplayEffect.h"
 #include "GameplayEffectExtension.h"
 #include "Net/UnrealNetwork.h"
@@ -53,11 +54,20 @@ void UGSPAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbac
 	AActor* TargetActor = nullptr;
 	AController* TargetController = nullptr;
 	AGSPCharacter* TargetCharacter = nullptr;
+	AGSPDestructibleObject* TargetObject = nullptr;
 	if (Data.Target.AbilityActorInfo.IsValid() && Data.Target.AbilityActorInfo->AvatarActor.IsValid())
 	{
 		TargetActor = Data.Target.AbilityActorInfo->AvatarActor.Get();
 		TargetController = Data.Target.AbilityActorInfo->PlayerController.Get();
-		TargetCharacter = Cast<AGSPCharacter>(TargetActor);
+		if (TargetController)
+		{
+			TargetCharacter = Cast<AGSPCharacter>(TargetActor);
+		}
+		else
+		{
+			TargetObject = Cast<AGSPDestructibleObject>(TargetActor);
+		}
+		
 	}
 
 	// Get the Source actor
@@ -109,11 +119,14 @@ void UGSPAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbac
 			{
 				WasAlive = TargetCharacter->IsAlive();
 			}
-
-			if (!TargetCharacter->IsAlive())
+			if (TargetCharacter)
 			{
-				UE_LOG(LogTemp, Warning, TEXT("%s() %s is NOT alive when receiving damage"), *FString(__FUNCTION__), *TargetCharacter->GetName());
+				if (!TargetCharacter->IsAlive())
+				{
+					UE_LOG(LogTemp, Warning, TEXT("%s() %s is NOT alive when receiving damage"), *FString(__FUNCTION__), *TargetCharacter->GetName());
+				}
 			}
+			
 
 			//// Apply the damage to shield first if it exists
 			//const float OldShield = GetShield();

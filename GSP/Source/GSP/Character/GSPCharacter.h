@@ -117,6 +117,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "GSP|GSPCharacter|Input")
 	UEnhancedInputComponent* GetEnhancedInputComponent() const;
+//	UEnhancedInputComponent* GetEnhancedInputComponent() const;
 
 	/** IAbilitySystemInterface */
 	UFUNCTION(BlueprintCallable, Category = "GSP|GSPCharacter|Ability")
