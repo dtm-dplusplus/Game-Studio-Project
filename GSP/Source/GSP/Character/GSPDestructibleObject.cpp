@@ -94,7 +94,6 @@ void AGSPDestructibleObject::BeginPlay()
 
 void AGSPDestructibleObject::CheckDeath() const
 {
-	UE_LOG(LogTemp, Error, TEXT("Checkdeath called"));
 	if (!IsAlive())
 	{
 		OnDeath();
