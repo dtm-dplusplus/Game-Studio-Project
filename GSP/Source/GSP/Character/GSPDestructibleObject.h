@@ -32,9 +32,10 @@ public:
 	UGSPAttributeSet* GetGSPAttributeSet() const;
 
 	virtual void Death();
+	bool IsAlive() const;
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "GSP|GSPObject")
-	void OnDeath();
+	void OnDeath() const;
 
 	/** Call in BP once death actions are done */
 	UFUNCTION(BlueprintCallable, Category = "GSP|GSPObject")
@@ -49,6 +50,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "GSP|GSPObject|Attributes")
 	float GetHealthRegenRate() const;
+
+	UFUNCTION(BlueprintCallable, Category = "GSP|GSPObject|Attributes")
+	void CheckDeath() const;
 
 protected:
 	// Called when the game starts or when spawned

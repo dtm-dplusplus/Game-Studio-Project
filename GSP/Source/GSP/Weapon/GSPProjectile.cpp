@@ -70,6 +70,7 @@ void AGSPProjectile::RecieveHit(AActor* SelfActor, AActor* OtherActor, FVector N
 			Asc->BP_ApplyGameplayEffectToSelf(_DamageEffect, 0.0, EffectContext);
 
 		}
+		Object->CheckDeath();
 	}
 
 	if (_NiagaraHitFX)

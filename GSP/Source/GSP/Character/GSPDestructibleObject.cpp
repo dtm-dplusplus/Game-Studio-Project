@@ -25,7 +25,7 @@ AGSPDestructibleObject::AGSPDestructibleObject()
 
 
 //handles death of object
-void AGSPDestructibleObject::Death()
+void AGSPDestructibleObject::Death() 
 {
 	OnDeath();
 }
@@ -35,6 +35,10 @@ void AGSPDestructibleObject::FinishDeath()
 	Destroy();
 }
 
+bool AGSPDestructibleObject::IsAlive() const
+{
+	return GetHealth() > 0.0f;
+}
 
 //getters for attributes
 float AGSPDestructibleObject::GetHealth() const
@@ -88,14 +92,23 @@ void AGSPDestructibleObject::BeginPlay()
 //void AGSPDestructibleObject::HealthChanged(const FOnAttributeChangeData& Data)
 
 
+void AGSPDestructibleObject::CheckDeath() const
+{
+	UE_LOG(LogTemp, Error, TEXT("Checkdeath called"));
+	if (!IsAlive())
+	{
+		OnDeath();
+	}
+
+
+	return;
+}
+
 // Called every frame
 void AGSPDestructibleObject::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	if (GetHealth() <= 0)
-	{
-		Death();
-	}
+	
 }
 
 
