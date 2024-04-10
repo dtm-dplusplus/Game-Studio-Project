@@ -1,7 +1,6 @@
 
 #include "GSPCharacter.h"
 
-#include "EnhancedInputComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/InputComponent.h"
@@ -57,17 +56,42 @@ AGSPCharacter::AGSPCharacter(const FObjectInitializer& ObjectInitializer):
 	_ProjectileSpawnPoint->SetupAttachment(RootComponent);
 
 	// Set up Ability component
-	//_AbilitySystemComponent = CreateDefaultSubobject<UGSPAbilitySystemComponent>(TEXT("_AbilitySystemComponent"));
+	// Create ability system component, and set it to be explicitly replicated
+	_AbilitySystemComponent = CreateDefaultSubobject<UGSPAbilitySystemComponent>(TEXT("_AbilitySystem")); //Component
+	_AbilitySystemComponent->SetIsReplicated(true);
+
+	// Mixed mode means we only are replicated the GEs to ourself
+	_AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
+
+	// Create the attribute set, this replicates by default
+	// automatically registers the _AttributeSet with the _AbilitySystemComponent
+	_AttributeSet = CreateDefaultSubobject<UGSPAttributeSet>(TEXT("_AttributeSet"));
+
+	// Set PlayerState's NetUpdateFrequency to the same as the Character.
+	NetUpdateFrequency = 100.0f;
+
+	_DeadTag = FGameplayTag::RequestGameplayTag("Actor.State.Dead");
 
 
 	// _AbilitySystemComponent needs to be updated at a high frequency
 	NetUpdateFrequency = 100.0f;
 	bAlwaysRelevant = true;
-	PrimaryActorTick.bCanEverTick = false;
 
-	// Cache tags
-	DeadTag = FGameplayTag::RequestGameplayTag("Actor.State.Dead");
+	PrimaryActorTick.bCanEverTick = true;
 }
+
+void AGSPCharacter::HealthChanged(const FOnAttributeChangeData& Data)
+{
+	// Check for and handle death
+	if (!IsAlive() && !_AbilitySystemComponent->HasMatchingGameplayTag(_DeadTag))
+	{
+		Death();
+		UE_LOG(LogTemp, Warning, TEXT("AGSPPlayerState::HealthChanged: %s is dead."), *GetName());
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("HealthChanged: %f"), Data.NewValue);
+}
+
 
 bool AGSPCharacter::IsAlive() const
 {
@@ -126,64 +150,13 @@ void AGSPCharacter::InitializeAbilities()
 }
 
 
-void AGSPCharacter::PossessedBy(AController* NewController)
-{
-	Super::PossessedBy(NewController);
 
-	if (AGSPPlayerState* PS = GetPlayerState<AGSPPlayerState>())
-	{
-		// Set the ASC on the Server. Clients do this in OnRep_PlayerState()
-		_AbilitySystemComponent = Cast<UGSPAbilitySystemComponent>(PS->GetAbilitySystemComponent());
-
-		// AI won't have PlayerControllers so we can init again here just to be sure. No harm in initing twice for heroes that have PlayerControllers.
-		PS->GetAbilitySystemComponent()->InitAbilityActorInfo(PS, this);
-
-		// Set the _AttributeSet for convenience attribute functions
-		AttributeSetBase = PS->GetGSPAttributeSet();
-
-		// Apply our defualt gameplay effect to create our attributes
-		if (_AbilitySystemComponent && _DefaultAttributes)
-		{
-			FGameplayEffectContextHandle EffectContext = _AbilitySystemComponent->MakeEffectContext();
-			EffectContext.AddSourceObject(this);
-
-			FGameplayEffectSpecHandle NewHandle = _AbilitySystemComponent->MakeOutgoingSpec(_DefaultAttributes, GetCharacterLevel(), EffectContext);
-			if (NewHandle.IsValid())
-			{
-				FActiveGameplayEffectHandle ActiveGEHandle = _AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*NewHandle.Data.Get());
-			}
-		}
-		else
-		{
-			UE_LOG(GSPCharacter, Error, TEXT("Missing _DefaultAttributes or _AbilitySystemComponent for %s."), *GetName());
-		}
-
-		// Initalize our abilities and input bindings
-		InitializeAbilities();
-
-		//AddStartupEffects();
-
-		// If we are dead, respawn with max attributes
-		if (_AbilitySystemComponent->GetTagCount(DeadTag) > 0)
-		{
-			// Set to max for respawn
-			SetHealth(GetMaxHealth());
-			SetStamina(GetMaxStamina());
-			SetShield(GetMaxShield());
-		}
-
-		// Remove Dead tag
-		_AbilitySystemComponent->RemoveActiveEffectsWithGrantedTags(FGameplayTagContainer(DeadTag));
-
-		UE_LOG(GSPCharacter, Warning, TEXT("AGSPCharacter::PossessedBy %s"), *GetName());
-	}
-}
 
 int32 AGSPCharacter::GetCharacterLevel() const
 {
-	if (AttributeSetBase)
+	if (_AttributeSet)
 	{
-		return AttributeSetBase->GetCharacterLevel();
+		return _AttributeSet->GetCharacterLevel();
 	}
 
 	return 0;
@@ -191,9 +164,9 @@ int32 AGSPCharacter::GetCharacterLevel() const
 
 float AGSPCharacter::GetHealth() const
 {
-	if(AttributeSetBase)
+	if(_AttributeSet)
 	{
-		return AttributeSetBase->GetHealth();
+		return _AttributeSet->GetHealth();
 	}
 
 	return 0.0f;
@@ -201,9 +174,9 @@ float AGSPCharacter::GetHealth() const
 
 float AGSPCharacter::GetHealthNormalized() const
 {
-	if (AttributeSetBase)
+	if (_AttributeSet)
 	{
-		return AttributeSetBase->GetHealth() / AttributeSetBase->GetMaxHealth();
+		return _AttributeSet->GetHealth() / _AttributeSet->GetMaxHealth();
 	}
 
 	return 0.0f;
@@ -211,9 +184,9 @@ float AGSPCharacter::GetHealthNormalized() const
 
 float AGSPCharacter::GetMoveSpeed() const
 {
-	if (AttributeSetBase)
+	if (_AttributeSet)
 	{
-		return AttributeSetBase->GetMoveSpeed();
+		return _AttributeSet->GetMoveSpeed();
 	}
 
 	return 0.0f;
@@ -221,10 +194,10 @@ float AGSPCharacter::GetMoveSpeed() const
 
 float AGSPCharacter::GetMoveSpeedBaseValue() const
 {
-	if (AttributeSetBase)
+	if (_AttributeSet)
 	{
-		return AttributeSetBase->GetMoveSpeedAttribute().
-			GetGameplayAttributeData(AttributeSetBase)->GetBaseValue();
+		return _AttributeSet->GetMoveSpeedAttribute().
+			GetGameplayAttributeData(_AttributeSet)->GetBaseValue();
 	}
 
 	return 0.0f;
@@ -232,9 +205,9 @@ float AGSPCharacter::GetMoveSpeedBaseValue() const
 
 float AGSPCharacter::GetMaxHealth() const
 {
-	if(AttributeSetBase)
+	if(_AttributeSet)
 	{
-		return AttributeSetBase->GetMaxHealth();
+		return _AttributeSet->GetMaxHealth();
 	}
 
 	return 0.0f;
@@ -242,9 +215,9 @@ float AGSPCharacter::GetMaxHealth() const
 
 float AGSPCharacter::GetStamina() const
 {
-	if (AttributeSetBase)
+	if (_AttributeSet)
 	{
-		return AttributeSetBase->GetStamina();
+		return _AttributeSet->GetStamina();
 	}
 
 	return 0.0f;
@@ -252,9 +225,9 @@ float AGSPCharacter::GetStamina() const
 
 float AGSPCharacter::GetMaxStamina() const
 {
-	if (AttributeSetBase)
+	if (_AttributeSet)
 	{
-		return AttributeSetBase->GetMaxStamina();
+		return _AttributeSet->GetMaxStamina();
 	}
 
 	return 0.0f;
@@ -262,9 +235,9 @@ float AGSPCharacter::GetMaxStamina() const
 
 float AGSPCharacter::GetShield() const
 {
-	if (AttributeSetBase)
+	if (_AttributeSet)
 	{
-		return AttributeSetBase->GetShield();
+		return _AttributeSet->GetShield();
 	}
 
 	return 0.0f;
@@ -272,9 +245,9 @@ float AGSPCharacter::GetShield() const
 
 float AGSPCharacter::GetMaxShield() const
 {
-	if (AttributeSetBase)
+	if (_AttributeSet)
 	{
-		return AttributeSetBase->GetMaxShield();
+		return _AttributeSet->GetMaxShield();
 	}
 
 	return 0.0f;
@@ -284,13 +257,46 @@ void AGSPCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	//Add Input Mapping Context
-	if (const APlayerController* PC = Cast<APlayerController>(Controller))
+	// AI won't have PlayerControllers so we can init again here just to be sure. No harm in initing twice for heroes that have PlayerControllers.
+	GetAbilitySystemComponent()->InitAbilityActorInfo(this, this);
+
+	// Apply our defualt gameplay effect to create our attributes
+	if (_AbilitySystemComponent && _DefaultAttributes)
 	{
-		if (const auto Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer()))
+		FGameplayEffectContextHandle EffectContext = _AbilitySystemComponent->MakeEffectContext();
+		EffectContext.AddSourceObject(this);
+
+		if (const FGameplayEffectSpecHandle NewHandle = _AbilitySystemComponent->MakeOutgoingSpec(_DefaultAttributes, GetCharacterLevel(), EffectContext); NewHandle.IsValid())
 		{
-			Subsystem->AddMappingContext(_MappingContext, 0);
+			_AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*NewHandle.Data.Get());
 		}
+	}
+	else
+	{
+		UE_LOG(GSPCharacter, Error, TEXT("Missing _DefaultAttributes or _AbilitySystemComponent for %s."), *GetName());
+	}
+
+	// Initalize our abilities and input bindings
+	InitializeAbilities();
+
+	//AddStartupEffects();
+
+	// If we are dead, respawn with max attributes
+	if (_AbilitySystemComponent->GetTagCount(_DeadTag) > 0)
+	{
+		// Set to max for respawn
+		SetHealth(GetMaxHealth());
+		SetStamina(GetMaxStamina());
+		SetShield(GetMaxShield());
+	}
+
+	// Remove Dead tag
+	_AbilitySystemComponent->RemoveActiveEffectsWithGrantedTags(FGameplayTagContainer(_DeadTag));
+
+	if (_AbilitySystemComponent)
+	{
+		// Health change callbacks
+		HealthChangedDelegateHandle = _AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(_AttributeSet->GetHealthAttribute()).AddUObject(this, &AGSPCharacter::HealthChanged);
 	}
 
 	if(!_AbilitySystemComponent)
@@ -302,7 +308,6 @@ void AGSPCharacter::BeginPlay()
 	if (!_DefaultAttributes)
 	{
 		UE_LOG(GSPCharacter, Error, TEXT("%s() Missing _DefaultAttributes for %s. Please fill in the character's Blueprint."), *FString(__FUNCTION__), *GetName());
-		return;
 	}
 }
 
@@ -311,33 +316,30 @@ void AGSPCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	Super::EndPlay(EndPlayReason);
 }
 
-void AGSPCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
-}
+
 
 void AGSPCharacter::SetHealth(float Health)
 {
-	if (AttributeSetBase)
+	if (_AttributeSet)
 	{
-		AttributeSetBase->SetHealth(Health);
+		_AttributeSet->SetHealth(Health);
 	}
 
 }
 
 void AGSPCharacter::SetStamina(float Stamina)
 {
-	if (AttributeSetBase)
+	if (_AttributeSet)
 	{
-		AttributeSetBase->SetStamina(Stamina);
+		_AttributeSet->SetStamina(Stamina);
 	}
 }
 
 void AGSPCharacter::SetShield(float Shield)
 {
-	if(AttributeSetBase)
+	if(_AttributeSet)
 	{
-		AttributeSetBase->SetShield(Shield);
+		_AttributeSet->SetShield(Shield);
 	}
 }
 
@@ -346,12 +348,12 @@ APlayerController* AGSPCharacter::GetGSPPlayerController() const
 	return Cast<APlayerController>(GetController());
 }
 
-/////////////////////// Components //////////////////////
-UEnhancedInputComponent* AGSPCharacter::GetEnhancedInputComponent() const
+AGSPPlayerState* AGSPCharacter::GetGSPPlayerState() const
 {
-	return Cast<UEnhancedInputComponent>(GetGSPPlayerController()->InputComponent);
+	return Cast<AGSPPlayerState>(GetPlayerState());
 }
 
+/////////////////////// Components //////////////////////
 UAbilitySystemComponent* AGSPCharacter::GetAbilitySystemComponent() const
 {
 	return Cast<UAbilitySystemComponent>(_AbilitySystemComponent);
