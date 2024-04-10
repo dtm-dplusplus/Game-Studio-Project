@@ -22,6 +22,7 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 private:
 	/** MappingContext */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GSP|GSPCharacter|Input", meta = (AllowPrivateAccess = "true"))

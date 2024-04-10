@@ -52,15 +52,12 @@ void AGSPProjectile::RecieveHit(AActor* SelfActor, AActor* OtherActor, FVector N
 	{
 		UE_LOG(GSPWeapon, Warning, TEXT("Projectile hit %s"), *Character->GetName());
 
-		if(const AGSPPlayerState* PS = Character->GetGSPPlayerState())
+		if (UAbilitySystemComponent* ASC = Character->GetAbilitySystemComponent())
 		{
-			if (UAbilitySystemComponent* ASC = PS->GetAbilitySystemComponent())
-			{
-				const FGameplayEffectContextHandle EffectContext = ASC->MakeEffectContext();
+			const FGameplayEffectContextHandle EffectContext = ASC->MakeEffectContext();
 
-				UE_LOG(GSPWeapon, Warning, TEXT("Applying damage effect to %s"), *Character->GetName());
-				ASC->BP_ApplyGameplayEffectToSelf(_DamageEffect, 0.0, EffectContext);
-			}
+			UE_LOG(GSPWeapon, Warning, TEXT("Applying damage effect to %s"), *Character->GetName());
+			ASC->BP_ApplyGameplayEffectToSelf(_DamageEffect, 0.0, EffectContext);
 		}
 	}
 

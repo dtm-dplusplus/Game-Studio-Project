@@ -5,9 +5,11 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "AbilitySystemInterface.h"
+#include "AttributeSet.h"
 #include "GameplayTagAssetInterface.h"
 #include "GSPCharacter.generated.h"
 
+struct FOnAttributeChangeData;
 class AGSPPlayerState;
 class UGSPAttributeSet;
 struct FGSPAbilityInputAction;
@@ -20,6 +22,9 @@ class UInputAction;
 
 // Declare a new log category
 DECLARE_LOG_CATEGORY_EXTERN(GSPCharacter, Log, All);
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FGSPOnAttributeValueChanged, FGameplayAttribute, Attribute, float,
+	NewValue, float, OldValue);
 
 
 /** Base class for all characters in the game - This should not be used directly, use subclasses of this type */
@@ -85,11 +90,19 @@ protected:
 	UPROPERTY()
 	UGSPAbilitySystemComponent* _AbilitySystemComponent;
 
-	// Reference to the _AttributeSet. It will live on the PlayerState or here if the character doesn't have a PlayerState.
 	UPROPERTY(BlueprintReadWrite)
-	UGSPAttributeSet* AttributeSetBase;
 
-	FGameplayTag DeadTag;
+	UGSPAttributeSet* _AttributeSet;
+
+	FGameplayTag _DeadTag;
+
+
+	// Attribute changed delegate handles
+	FDelegateHandle HealthChangedDelegateHandle;
+
+
+	// Attribute changed callbacks
+	virtual void HealthChanged(const FOnAttributeChangeData& Data);
 
 	// Default attributes for a character for initializing on spawn/respawn.
 	// This is an instant GE that overrides the values for attributes that get reset on spawn/respawn.
@@ -146,9 +159,7 @@ protected:
 
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
-	virtual void PossessedBy(AController* NewController) override;
-
-	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
+	
 
 	/**
 	* Setters for Attributes. Only use these in special cases, otherwise use a GE to change Attributes.
