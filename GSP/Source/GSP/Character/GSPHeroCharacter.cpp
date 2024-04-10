@@ -5,9 +5,7 @@
 
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
-#include "GSPPlayerState.h"
 #include "Components/InputComponent.h"
-#include "GSP/Ability/GSPAbilitySystemComponent.h"
 
 void AGSPHeroCharacter::BeginPlay()
 {

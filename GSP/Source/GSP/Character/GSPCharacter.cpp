@@ -57,7 +57,7 @@ AGSPCharacter::AGSPCharacter(const FObjectInitializer& ObjectInitializer):
 
 	// Set up Ability component
 	// Create ability system component, and set it to be explicitly replicated
-	_AbilitySystemComponent = CreateDefaultSubobject<UGSPAbilitySystemComponent>(TEXT("_AbilitySystem")); //Component
+	_AbilitySystemComponent = CreateDefaultSubobject<UGSPAbilitySystemComponent>(TEXT("_AbilitySystemComponent")); //Component
 	_AbilitySystemComponent->SetIsReplicated(true);
 
 	// Mixed mode means we only are replicated the GEs to ourself

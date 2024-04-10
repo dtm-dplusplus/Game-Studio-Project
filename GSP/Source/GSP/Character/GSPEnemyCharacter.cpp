@@ -18,9 +18,6 @@ AGSPEnemyCharacter::AGSPEnemyCharacter(const FObjectInitializer& ObjectInitializ
 	_HealthBarWidgetComponent->SetWidgetSpace(EWidgetSpace::World);
 	_HealthBarWidgetComponent->SetDrawSize(FVector2D(200.0f, 50.0f));
 	_HealthBarWidgetComponent->SetVisibility(false);
-
-	// We do this here as the enemy doesn't have a PlayerState
-	_AbilitySystemComponent = CreateDefaultSubobject<UGSPAbilitySystemComponent>(TEXT("_AbilitySystemComponent"));
 }
 
 void AGSPEnemyCharacter::BeginPlay()

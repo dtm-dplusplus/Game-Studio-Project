@@ -10,9 +10,6 @@
 #include "GSPPlayerState.generated.h"
 
 
-struct FOnAttributeChangeData;
-class UGSPAttributeSet;
-
 /**
  * Player State for GSP Characters
  */
