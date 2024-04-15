@@ -15,6 +15,11 @@ UGSPAttributeSet::UGSPAttributeSet()
 	//HeadShotTag = FGameplayTag::RequestGameplayTag(FName("Effect.Damage.HeadShot"));
 }
 
+float UGSPAttributeSet::GetHealthNorm() const
+{
+	return Health.GetCurrentValue() / MaxHealth.GetCurrentValue();
+}
+
 void UGSPAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue)
 {
 	// This is called whenever attributes change, so for max health/mana we want to scale the current totals to match
@@ -144,7 +149,7 @@ void UGSPAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbac
 				//const float NewHealth = GetHealth() - DamageAfterShield;
 				const float NewHealth = GetHealth() - LocalDamageDone;
 				SetHealth(FMath::Clamp(NewHealth, 0.0f, GetMaxHealth()));
-				HealthChangeDelegate.Broadcast(GetHealth(), GetHealth() / GetMaxHealth());
+				HealthChangeDelegate.Broadcast(GetHealth(), GetHealthNorm());
 				UE_LOG(LogTemp, Log, TEXT("%s() %s Health: %f"), *FString(__FUNCTION__), *GetOwningActor()->GetName(), NewHealth);
 			}
 

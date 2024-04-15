@@ -7,7 +7,7 @@
 #include "AbilitySystemComponent.h"
 #include "GSPAttributeSet.generated.h"
 
-// Uses macros from AttributeSet.h
+// Uses macros from _AttributeSet.h
 #define ATTRIBUTE_ACCESSORS(ClassName, PropertyName) \
 	GAMEPLAYATTRIBUTE_PROPERTY_GETTER(ClassName, PropertyName) \
 	GAMEPLAYATTRIBUTE_VALUE_GETTER(PropertyName) \
@@ -26,13 +26,16 @@ class GSP_API UGSPAttributeSet : public UAttributeSet
 
 public:
 	UGSPAttributeSet();
-
+	
 	// Current Health, when 0 we expect owner to die unless prevented by an ability. Capped by MaxHealth.
 	// Positive changes can directly use this.
 	// Negative changes to Health should go through Damage meta attribute.
 	UPROPERTY(BlueprintReadOnly, Category = "Health", ReplicatedUsing = OnRep_Health)
 	FGameplayAttributeData Health;
 	ATTRIBUTE_ACCESSORS(UGSPAttributeSet, Health)
+
+	UFUNCTION(BlueprintCallable)
+	float GetHealthNorm() const;
 
 	UPROPERTY(BlueprintAssignable, Category = "Health")
 	FGSPAttributeEvent HealthChangeDelegate;
