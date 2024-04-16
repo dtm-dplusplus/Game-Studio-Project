@@ -25,7 +25,7 @@ protected:
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 private:
 	/** MappingContext */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GSP|GSPCharacter|Input", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GSP|GSPCharacter|Input", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UInputMappingContext> _MappingContext;
 	
 };
