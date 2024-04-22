@@ -7,7 +7,6 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
-#include "EnhancedInputSubsystems.h"
 #include "GSPPlayerState.h"
 #include "Components/ArrowComponent.h"
 #include "../Ability/GSPAbilitySystemComponent.h"
@@ -123,13 +122,13 @@ void AGSPCharacter::InitializeAbilities()
 	//	}
 
 	//	AddedAttributes.Empty(DefaultAttributes.Num());
-	//	DefaultAbilityHandles.Empty(DefaultAbilities.Num());
+	//	DefaultAbilityHandles.Empty(_DefaultAbilities.Num());
 	//}
 
 	// Default abilities
 	if(_AbilitySystemComponent)
 	{
-		for (auto& [InputAction, Ability] : DefaultAbilities)
+		for (auto& [InputAction, Ability] : _DefaultAbilities)
 		{
 			// Give Ability
 			if (*Ability)

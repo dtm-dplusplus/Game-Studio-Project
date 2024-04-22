@@ -12,7 +12,7 @@ UGSPInputConfig::UGSPInputConfig(const FObjectInitializer& ObjectInitializer)
 
 const UInputAction* UGSPInputConfig::FindNativeInputActionForTag(const FGameplayTag& InputTag, bool bLogNotFound) const
 {
-	for (const FGSPInputAction& Action : NativeInputActions)
+	for (const FGSPInputAction& Action : _NativeInputActions)
 	{
 		if (Action.InputAction && (Action.InputTag == InputTag))
 		{
@@ -30,7 +30,7 @@ const UInputAction* UGSPInputConfig::FindNativeInputActionForTag(const FGameplay
 
 const UInputAction* UGSPInputConfig::FindAbilityInputActionForTag(const FGameplayTag& InputTag, bool bLogNotFound) const
 {
-	for (const FGSPInputAction& Action : AbilityInputActions)
+	for (const FGSPInputAction& Action : _AbilityInputActions)
 	{
 		if (Action.InputAction && (Action.InputTag == InputTag))
 		{
