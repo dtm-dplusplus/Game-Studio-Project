@@ -87,12 +87,12 @@ public:
 
 protected:
 	/* Ability Component */
-	UPROPERTY()
+	UPROPERTY(BlueprintReadWrite)
 	UGSPAbilitySystemComponent* _AbilitySystemComponent;
 
-	UPROPERTY(BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 
-	UGSPAttributeSet* _AttributeSet;
+	TObjectPtr<UGSPAttributeSet> _AttributeSet;
 
 	FGameplayTag _DeadTag;
 
@@ -111,7 +111,7 @@ protected:
 
 	// Default Abilitity Input Action bindings. Granted on possession.
 	UPROPERTY(EditAnywhere, Category = "GSP|GSPCharacter|Abilities")
-	TArray<FGSPAbilityInputAction> DefaultAbilities;
+	TArray<FGSPAbilityInputAction> _DefaultAbilities;
 
 	/** Camera boom positioning the camera behind the character */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GSP|GSPCharacter|Camera", meta = (AllowPrivateAccess = "true"))

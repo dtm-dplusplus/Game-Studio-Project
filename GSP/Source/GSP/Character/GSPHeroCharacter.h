@@ -15,8 +15,20 @@ class GSP_API AGSPHeroCharacter : public AGSPCharacter
 	GENERATED_BODY()
 
 public:
-	UFUNCTION(BlueprintCallable, Category = "GSP|GSPCharacter|Input")
+
+	AGSPHeroCharacter(const FObjectInitializer& ObjectInitializer);
+
+	UFUNCTION(BlueprintCallable, Category = "GSP|GSPHeroCharacter|Input")
 	UEnhancedInputComponent* GetEnhancedInputComponent() const;
+
+	void AbilityOne();
+	void AbilityTwo();
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnAbilityOne();
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnAbilityTwo();
 
 protected:
 	// Called when the game starts or when spawned
@@ -25,7 +37,16 @@ protected:
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 private:
 	/** MappingContext */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GSP|GSPCharacter|Input", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GSP|GSPHeroCharacter|Input", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UInputMappingContext> _MappingContext;
-	
+
+	/** Input Config can be used to query abilities and their type */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GSP|GSPHeroCharacter|Input", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class UGSPInputConfig> _InputConfig; 
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GSP|GSPHeroCharacter|Ability", meta = (AllowPrivateAccess = "true"))
+	FGameplayTag _AbilityOne;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GSP|GSPHeroCharacter|Ability", meta = (AllowPrivateAccess = "true"))
+	FGameplayTag _AbilityTwo;
 };
