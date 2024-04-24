@@ -69,9 +69,6 @@ AGSPCharacter::AGSPCharacter(const FObjectInitializer& ObjectInitializer):
 	// Set PlayerState's NetUpdateFrequency to the same as the Character.
 	NetUpdateFrequency = 100.0f;
 
-	_DeadTag = FGameplayTag::RequestGameplayTag("Actor.State.Dead");
-
-
 	// _AbilitySystemComponent needs to be updated at a high frequency
 	NetUpdateFrequency = 100.0f;
 	bAlwaysRelevant = true;
@@ -149,18 +146,6 @@ void AGSPCharacter::InitializeAbilities()
 }
 
 
-
-
-int32 AGSPCharacter::GetCharacterLevel() const
-{
-	if (_AttributeSet)
-	{
-		return _AttributeSet->GetCharacterLevel();
-	}
-
-	return 0;
-}
-
 float AGSPCharacter::GetHealth() const
 {
 	if(_AttributeSet)
@@ -181,52 +166,11 @@ float AGSPCharacter::GetHealthNormalized() const
 	return 0.0f;
 }
 
-float AGSPCharacter::GetMoveSpeed() const
-{
-	if (_AttributeSet)
-	{
-		return _AttributeSet->GetMoveSpeed();
-	}
-
-	return 0.0f;
-}
-
-float AGSPCharacter::GetMoveSpeedBaseValue() const
-{
-	if (_AttributeSet)
-	{
-		return _AttributeSet->GetMoveSpeedAttribute().
-			GetGameplayAttributeData(_AttributeSet)->GetBaseValue();
-	}
-
-	return 0.0f;
-}
-
 float AGSPCharacter::GetMaxHealth() const
 {
 	if(_AttributeSet)
 	{
 		return _AttributeSet->GetMaxHealth();
-	}
-
-	return 0.0f;
-}
-
-float AGSPCharacter::GetStamina() const
-{
-	if (_AttributeSet)
-	{
-		return _AttributeSet->GetStamina();
-	}
-
-	return 0.0f;
-}
-
-float AGSPCharacter::GetMaxStamina() const
-{
-	if (_AttributeSet)
-	{
-		return _AttributeSet->GetMaxStamina();
 	}
 
 	return 0.0f;
@@ -252,6 +196,16 @@ float AGSPCharacter::GetMaxShield() const
 	return 0.0f;
 }
 
+float AGSPCharacter::GetShieldNormalized()
+{
+	if (_AttributeSet)
+	{
+		return _AttributeSet->GetShieldNormalized();
+	}
+
+	return 0.0f;
+}
+
 void AGSPCharacter::BeginPlay()
 {
 	Super::BeginPlay();
@@ -265,7 +219,7 @@ void AGSPCharacter::BeginPlay()
 		FGameplayEffectContextHandle EffectContext = _AbilitySystemComponent->MakeEffectContext();
 		EffectContext.AddSourceObject(this);
 
-		if (const FGameplayEffectSpecHandle NewHandle = _AbilitySystemComponent->MakeOutgoingSpec(_DefaultAttributes, GetCharacterLevel(), EffectContext); NewHandle.IsValid())
+		if (const FGameplayEffectSpecHandle NewHandle = _AbilitySystemComponent->MakeOutgoingSpec(_DefaultAttributes, 0.0f, EffectContext); NewHandle.IsValid())
 		{
 			_AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*NewHandle.Data.Get());
 		}
@@ -280,25 +234,13 @@ void AGSPCharacter::BeginPlay()
 
 	//AddStartupEffects();
 
-	// If we are dead, respawn with max attributes
-	if (_AbilitySystemComponent->GetTagCount(_DeadTag) > 0)
-	{
-		// Set to max for respawn
-		SetHealth(GetMaxHealth());
-		SetStamina(GetMaxStamina());
-		SetShield(GetMaxShield());
-	}
-
-	// Remove Dead tag
-	_AbilitySystemComponent->RemoveActiveEffectsWithGrantedTags(FGameplayTagContainer(_DeadTag));
-
 	if (_AbilitySystemComponent)
 	{
 		// Health change callbacks
 		HealthChangedDelegateHandle = _AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(_AttributeSet->GetHealthAttribute()).AddUObject(this, &AGSPCharacter::HealthChanged);
 	}
 
-	if(!_AbilitySystemComponent)
+	if (!_AbilitySystemComponent)
 	{
 		UE_LOG(GSPCharacter, Error, TEXT("%s() Missing _AbilitySystemComponent for %s. Please fill in the character's Blueprint."), *FString(__FUNCTION__), *GetName());
 		return;
@@ -308,38 +250,13 @@ void AGSPCharacter::BeginPlay()
 	{
 		UE_LOG(GSPCharacter, Error, TEXT("%s() Missing _DefaultAttributes for %s. Please fill in the character's Blueprint."), *FString(__FUNCTION__), *GetName());
 	}
+
+	_AttributeSet->SetHealth(_AttributeSet->GetMaxHealth());
 }
 
 void AGSPCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	Super::EndPlay(EndPlayReason);
-}
-
-
-
-void AGSPCharacter::SetHealth(float Health)
-{
-	if (_AttributeSet)
-	{
-		_AttributeSet->SetHealth(Health);
-	}
-
-}
-
-void AGSPCharacter::SetStamina(float Stamina)
-{
-	if (_AttributeSet)
-	{
-		_AttributeSet->SetStamina(Stamina);
-	}
-}
-
-void AGSPCharacter::SetShield(float Shield)
-{
-	if(_AttributeSet)
-	{
-		_AttributeSet->SetShield(Shield);
-	}
 }
 
 APlayerController* AGSPCharacter::GetGSPPlayerController() const

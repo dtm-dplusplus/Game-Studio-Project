@@ -53,9 +53,6 @@ public:
 	* Getters for attributes from GSPAttributeSet
 	**/
 	UFUNCTION(BlueprintCallable, Category = "GSP|GSPCharacter|Attributes")
-	int32 GetCharacterLevel() const;
-
-	UFUNCTION(BlueprintCallable, Category = "GSP|GSPCharacter|Attributes")
 	float GetHealth() const;
 
 	// Returns health as a percentage of max health
@@ -66,25 +63,13 @@ public:
 	float GetMaxHealth() const;
 
 	UFUNCTION(BlueprintCallable, Category = "GSP|GSPCharacter|Attributes")
-	float GetStamina() const;
-
-	UFUNCTION(BlueprintCallable, Category = "GSP|GSPCharacter|Attributes")
-	float GetMaxStamina() const;
-
-	UFUNCTION(BlueprintCallable, Category = "GSP|GSPCharacter|Attributes")
 	float GetShield() const;
 
 	UFUNCTION(BlueprintCallable, Category = "GSP|GSPCharacter|Attributes")
 	float GetMaxShield() const;
 
-	// Gets the Current value of MoveSpeed
 	UFUNCTION(BlueprintCallable, Category = "GSP|GSPCharacter|Attributes")
-	float GetMoveSpeed() const;
-
-	// Gets the Base value of MoveSpeed
-	UFUNCTION(BlueprintCallable, Category = "GSP|GSPCharacter|Attributes")
-	float GetMoveSpeedBaseValue() const;
-
+	float GetShieldNormalized();
 protected:
 	/* Ability Component */
 	UPROPERTY(BlueprintReadWrite)
@@ -158,13 +143,4 @@ protected:
 	virtual void BeginPlay() override;
 
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
-
-	
-
-	/**
-	* Setters for Attributes. Only use these in special cases, otherwise use a GE to change Attributes.
-	*/
-	virtual void SetHealth(float Health);
-	virtual void SetStamina(float Stamina);
-	virtual void SetShield(float Shield);
 };
