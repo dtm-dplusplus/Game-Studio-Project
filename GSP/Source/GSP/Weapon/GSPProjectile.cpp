@@ -10,6 +10,7 @@
 #include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
 #include "GSP/Character/GSPPlayerState.h"
+#include "GSP/Character/GSPDestructibleObject.h"
 
 DEFINE_LOG_CATEGORY(GSPWeapon)
 
@@ -58,6 +59,16 @@ void AGSPProjectile::RecieveHit(AActor* SelfActor, AActor* OtherActor, FVector N
 
 			UE_LOG(GSPWeapon, Warning, TEXT("Applying damage effect to %s"), *Character->GetName());
 			ASC->BP_ApplyGameplayEffectToSelf(_DamageEffect, 0.0, EffectContext);
+		}
+	}
+	else if (const AGSPDestructibleObject* Object = Cast<AGSPDestructibleObject>(OtherActor); _DamageEffect && Object)
+	{
+		if (UAbilitySystemComponent* ASC = Object->GetAbilitySystemComponent())
+		{
+			FGameplayEffectContextHandle EffectContext = ASC->MakeEffectContext();
+			UE_LOG(GSPWeapon, Warning, TEXT("Applying damage effect to %s"), *Object->GetName());
+			ASC->BP_ApplyGameplayEffectToSelf(_DamageEffect, 0.0f, EffectContext);
+			Object->CheckDeath();
 		}
 	}
 
