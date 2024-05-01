@@ -6,43 +6,16 @@
 #include "../Character/GSPDestructibleObject.h"
 #include "GameplayEffect.h"
 #include "GameplayEffectExtension.h"
-#include "Net/UnrealNetwork.h"
 //#include "InputCore.h"
 
-UGSPAttributeSet::UGSPAttributeSet()
-{
-	// Cache tags
-	//HeadShotTag = FGameplayTag::RequestGameplayTag(FName("Effect.Damage.HeadShot"));
-}
-
-float UGSPAttributeSet::GetHealthNorm() const
+float UGSPAttributeSet::GetHealthNormalized() const
 {
 	return Health.GetCurrentValue() / MaxHealth.GetCurrentValue();
 }
 
-void UGSPAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue)
+float UGSPAttributeSet::GetShieldNormalized() const
 {
-	// This is called whenever attributes change, so for max health/mana we want to scale the current totals to match
-	Super::PreAttributeChange(Attribute, NewValue);
-
-	// If a Max value changes, adjust current to keep Current % of Current to Max
-	if (Attribute == GetMaxHealthAttribute()) // GetMaxHealthAttribute comes from the Macros defined at the top of the header
-	{
-		AdjustAttributeForMaxChange(Health, MaxHealth, NewValue, GetHealthAttribute());
-	}
-	//else if (Attribute == GetMaxManaAttribute())
-	//{
-	//	AdjustAttributeForMaxChange(Mana, MaxMana, NewValue, GetManaAttribute());
-	//}
-	//else if (Attribute == GetMaxStaminaAttribute())
-	//{
-	//	AdjustAttributeForMaxChange(Stamina, MaxStamina, NewValue, GetStaminaAttribute());
-	//}
-	//else if (Attribute == GetMoveSpeedAttribute())
-	//{
-	//	// Cannot slow less than 150 units/s and cannot boost more than 1000 units/s
-	//	NewValue = FMath::Clamp<float>(NewValue, 150, 1000);
-	//}
+	return Shield.GetCurrentValue() / MaxShield.GetCurrentValue();
 }
 
 void UGSPAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
@@ -133,23 +106,23 @@ void UGSPAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbac
 			}
 			
 
-			//// Apply the damage to shield first if it exists
-			//const float OldShield = GetShield();
-			//float DamageAfterShield = LocalDamageDone - OldShield;
-			//if (OldShield > 0)
-			//{
-			//	float NewShield = OldShield - LocalDamageDone;
-			//	SetShield(FMath::Clamp<float>(NewShield, 0.0f, GetMaxShield()));
-			//}
+			// Apply the damage to shield first if it exists
+			const float OldShield = GetShield();
+			float DamageAfterShield = LocalDamageDone - OldShield;
+			if (OldShield > 0)
+			{
+				float NewShield = OldShield - LocalDamageDone;
+				SetShield(FMath::Clamp<float>(NewShield, 0.0f, GetMaxShield()));
+				ShieldChangeDelegate.Broadcast(GetShield(), GetShieldNormalized());
+			}
 
-			//if (DamageAfterShield > 0)
-			if(LocalDamageDone > 0)
+			// If there is still damage left after shield, apply damage
+			if (DamageAfterShield > 0)
 			{
 				// Apply the health change and then clamp it
-				//const float NewHealth = GetHealth() - DamageAfterShield;
-				const float NewHealth = GetHealth() - LocalDamageDone;
+				const float NewHealth = GetHealth() - DamageAfterShield;
 				SetHealth(FMath::Clamp(NewHealth, 0.0f, GetMaxHealth()));
-				HealthChangeDelegate.Broadcast(GetHealth(), GetHealthNorm());
+				HealthChangeDelegate.Broadcast(GetHealth(), GetHealthNormalized());
 				UE_LOG(LogTemp, Log, TEXT("%s() %s Health: %f"), *FString(__FUNCTION__), *GetOwningActor()->GetName(), NewHealth);
 			}
 
@@ -165,113 +138,20 @@ void UGSPAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbac
 		// Handle other health changes.
 		// Health loss should go through Damage.
 		SetHealth(FMath::Clamp(GetHealth(), 0.0f, GetMaxHealth()));
-	} 
-	else if (Data.EvaluatedData.Attribute == GetStaminaAttribute())
+	}
+	else if (Data.EvaluatedData.Attribute == GetShieldRepairAttribute())
 	{
-		// Handle stamina changes.
-		SetStamina(FMath::Clamp(GetStamina(), 0.0f, GetMaxStamina()));
+		// Clear shield repair value
+		float LocalShieldRepair = GetShieldRepair();
+		SetShieldRepair(0.0f);
+		SetShield(FMath::Clamp(GetShield() + LocalShieldRepair, 0.0f, GetMaxShield()));
+		ShieldChangeDelegate.Broadcast(GetShield(), GetShieldNormalized());
+		UE_LOG(LogTemp, Log, TEXT("%s() %s Shield Repair: %f"), *FString(__FUNCTION__), *GetOwningActor()->GetName(), LocalShieldRepair);
 	}
 	else if (Data.EvaluatedData.Attribute == GetShieldAttribute())
 	{
 		// Handle shield changes.
 		SetShield(FMath::Clamp(GetShield(), 0.0f, GetMaxShield()));
+		ShieldChangeDelegate.Broadcast(GetShield(), GetShieldNormalized());
 	}
-}
-
-void UGSPAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	DOREPLIFETIME_CONDITION_NOTIFY(UGSPAttributeSet, Health, COND_None, REPNOTIFY_Always);
-	DOREPLIFETIME_CONDITION_NOTIFY(UGSPAttributeSet, MaxHealth, COND_None, REPNOTIFY_Always);
-	DOREPLIFETIME_CONDITION_NOTIFY(UGSPAttributeSet, HealthRegenRate, COND_None, REPNOTIFY_Always);
-	DOREPLIFETIME_CONDITION_NOTIFY(UGSPAttributeSet, Stamina, COND_None, REPNOTIFY_Always);
-	DOREPLIFETIME_CONDITION_NOTIFY(UGSPAttributeSet, MaxStamina, COND_None, REPNOTIFY_Always);
-	DOREPLIFETIME_CONDITION_NOTIFY(UGSPAttributeSet, StaminaRegenRate, COND_None, REPNOTIFY_Always);
-	DOREPLIFETIME_CONDITION_NOTIFY(UGSPAttributeSet, Shield, COND_None, REPNOTIFY_Always);
-	DOREPLIFETIME_CONDITION_NOTIFY(UGSPAttributeSet, MaxShield, COND_None, REPNOTIFY_Always);
-	DOREPLIFETIME_CONDITION_NOTIFY(UGSPAttributeSet, ShieldRegenRate, COND_None, REPNOTIFY_Always);
-	DOREPLIFETIME_CONDITION_NOTIFY(UGSPAttributeSet, Armor, COND_None, REPNOTIFY_Always);
-	DOREPLIFETIME_CONDITION_NOTIFY(UGSPAttributeSet, MoveSpeed, COND_None, REPNOTIFY_Always);
-	DOREPLIFETIME_CONDITION_NOTIFY(UGSPAttributeSet, CharacterLevel, COND_None, REPNOTIFY_Always);
-	DOREPLIFETIME_CONDITION_NOTIFY(UGSPAttributeSet, XP, COND_None, REPNOTIFY_Always);
-}
-
-void UGSPAttributeSet::AdjustAttributeForMaxChange(FGameplayAttributeData& AffectedAttribute, const FGameplayAttributeData& MaxAttribute, float NewMaxValue, const FGameplayAttribute& AffectedAttributeProperty)
-{
-	UAbilitySystemComponent* AbilityComp = GetOwningAbilitySystemComponent();
-	const float CurrentMaxValue = MaxAttribute.GetCurrentValue();
-	if (!FMath::IsNearlyEqual(CurrentMaxValue, NewMaxValue) && AbilityComp)
-	{
-		// Change current value to maintain the current Val / Max percent
-		const float CurrentValue = AffectedAttribute.GetCurrentValue();
-		float NewDelta = (CurrentMaxValue > 0.f) ? (CurrentValue * NewMaxValue / CurrentMaxValue) - CurrentValue : NewMaxValue;
-
-		AbilityComp->ApplyModToAttributeUnsafe(AffectedAttributeProperty, EGameplayModOp::Additive, NewDelta);
-	}
-}
-
-void UGSPAttributeSet::OnRep_Health(const FGameplayAttributeData& OldHealth)
-{
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UGSPAttributeSet, Health, OldHealth);
-}
-
-void UGSPAttributeSet::OnRep_MaxHealth(const FGameplayAttributeData& OldMaxHealth)
-{
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UGSPAttributeSet, MaxHealth, OldMaxHealth);
-}
-
-void UGSPAttributeSet::OnRep_HealthRegenRate(const FGameplayAttributeData& OldHealthRegenRate)
-{
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UGSPAttributeSet, HealthRegenRate, OldHealthRegenRate);
-}
-
-void UGSPAttributeSet::OnRep_Stamina(const FGameplayAttributeData& OldStamina)
-{
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UGSPAttributeSet, Stamina, OldStamina);
-}
-
-void UGSPAttributeSet::OnRep_MaxStamina(const FGameplayAttributeData& OldMaxStamina)
-{
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UGSPAttributeSet, MaxStamina, OldMaxStamina);
-}
-
-void UGSPAttributeSet::OnRep_StaminaRegenRate(const FGameplayAttributeData& OldStaminaRegenRate)
-{
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UGSPAttributeSet, StaminaRegenRate, OldStaminaRegenRate);
-}
-
-void UGSPAttributeSet::OnRep_Shield(const FGameplayAttributeData& OldShield)
-{
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UGSPAttributeSet, Shield, OldShield);
-}
-
-void UGSPAttributeSet::OnRep_MaxShield(const FGameplayAttributeData& OldMaxShield)
-{
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UGSPAttributeSet, MaxShield, OldMaxShield);
-}
-
-void UGSPAttributeSet::OnRep_ShieldRegenRate(const FGameplayAttributeData& OldShieldRegenRate)
-{
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UGSPAttributeSet, ShieldRegenRate, OldShieldRegenRate);
-}
-
-void UGSPAttributeSet::OnRep_Armor(const FGameplayAttributeData& OldArmor)
-{
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UGSPAttributeSet, Armor, OldArmor);
-}
-
-void UGSPAttributeSet::OnRep_MoveSpeed(const FGameplayAttributeData& OldMoveSpeed)
-{
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UGSPAttributeSet, MoveSpeed, OldMoveSpeed);
-}
-
-void UGSPAttributeSet::OnRep_CharacterLevel(const FGameplayAttributeData& OldCharacterLevel)
-{
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UGSPAttributeSet, CharacterLevel, OldCharacterLevel);
-}
-
-void UGSPAttributeSet::OnRep_XP(const FGameplayAttributeData& OldXP)
-{
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UGSPAttributeSet, XP, OldXP);
 }
