@@ -21,14 +21,16 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "GSP|GSPHeroCharacter|Input")
 	UEnhancedInputComponent* GetEnhancedInputComponent() const;
 
+	// Activate ability by tag and returns duration of ability cooldown
+	float ActivateAbillityDuration(const FGameplayTag& AbilityTag);
 	void AbilityOne();
 	void AbilityTwo();
 
 	UFUNCTION(BlueprintImplementableEvent)
-	void OnAbilityOne();
+	void OnAbilityOne(float Cooldown);
 
 	UFUNCTION(BlueprintImplementableEvent)
-	void OnAbilityTwo();
+	void OnAbilityTwo(float Cooldown);
 
 protected:
 	// Called when the game starts or when spawned

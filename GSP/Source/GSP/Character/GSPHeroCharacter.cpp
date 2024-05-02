@@ -72,34 +72,46 @@ UEnhancedInputComponent* AGSPHeroCharacter::GetEnhancedInputComponent() const
 	return Cast<UEnhancedInputComponent>(GetController()->InputComponent);
 }
 
+float AGSPHeroCharacter::ActivateAbillityDuration(const FGameplayTag& AbilityTag)
+{
+	if (_AbilitySystemComponent)
+	{
+		FGameplayTagContainer tagContainer;
+		tagContainer.AddTag(AbilityTag);
+		if (_AbilitySystemComponent->TryActivateAbilitiesByTag(tagContainer))
+		{
+			FGameplayEffectQuery query; query.EffectTagQuery = FGameplayTagQuery::MakeQuery_MatchAnyTags(tagContainer);
+
+			if (TArray<float> durations = _AbilitySystemComponent->GetActiveEffectsDuration(query); durations.Num() > 0)
+			{
+				UE_LOG(GSPCharacter, Warning, TEXT("Ability Duration: %f"), durations[0])
+					return durations[0];
+			}
+		}
+	}
+
+	return 0.0f;
+}
+
 void AGSPHeroCharacter::AbilityOne()
 {
 	UE_LOG(GSPCharacter, Warning, TEXT("Ability One"))
 
-	if(_AbilitySystemComponent)
+	if (float duration = ActivateAbillityDuration(_AbilityOne); duration > 0.0f)
 	{
-		FGameplayTagContainer tagContainer;
-		tagContainer.AddTag(_AbilityOne);
-		_AbilitySystemComponent->TryActivateAbilitiesByTag(tagContainer);
+		OnAbilityOne(duration);
 	}
-
-	// BP Event
-	OnAbilityOne();
+	
 }
 
 void AGSPHeroCharacter::AbilityTwo()
 {
 	UE_LOG(GSPCharacter, Warning, TEXT("Ability Two"))
 		
-	if (_AbilitySystemComponent)
+	if (float duration = ActivateAbillityDuration(_AbilityTwo); duration > 0.0f)
 	{
-		FGameplayTagContainer tagContainer;
-		tagContainer.AddTag(_AbilityTwo);
-		_AbilitySystemComponent->TryActivateAbilitiesByTag(tagContainer);
+		OnAbilityTwo(duration);
 	}
-
-	// BP Event
-	OnAbilityTwo();
 }
 
 void AGSPHeroCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
