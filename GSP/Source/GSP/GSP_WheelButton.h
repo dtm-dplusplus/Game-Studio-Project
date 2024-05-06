@@ -2,13 +2,13 @@
 #pragma once
 #include "CoreMinimal.h"
 #include "CommonButtonBase.h"
+#include "AbilitySystemComponent.h"
 #include "GSP_WheelButton.generated.h"
-class UInputAction;
 UCLASS()
 class GSP_API UGSP_WheelButton : public UCommonButtonBase
 {
 	GENERATED_BODY()
 protected:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GSP|Ability", meta = (AllowPrivateAccess = "true"))
-	UInputAction* _action;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GSP|Ability")
+	FGameplayTag Button_Tag;
 };
