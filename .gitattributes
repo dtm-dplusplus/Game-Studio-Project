@@ -2,5 +2,3 @@
 * text=auto
 # Add this when we start adding assets
 GSP/Content/Assets/** filter=lfs diff=lfs merge=lfs -text
-GSP/Content/MetaHumans/Common/Face/Face_Archetype.uasset filter=lfs diff=lfs merge=lfs -text
-GSP/Content/MetaHumans/NolanShane/Face/NolanShane_FaceMesh.uasset filter=lfs diff=lfs merge=lfs -text
