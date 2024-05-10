@@ -81,7 +81,6 @@ float AGSPHeroCharacter::ActivateAbillityDuration(const FGameplayTag& AbilityTag
 		if (_AbilitySystemComponent->TryActivateAbilitiesByTag(tagContainer))
 		{
 			FGameplayEffectQuery query; query.EffectTagQuery = FGameplayTagQuery::MakeQuery_MatchAnyTags(tagContainer);
-
 			if (TArray<float> durations = _AbilitySystemComponent->GetActiveEffectsDuration(query); durations.Num() > 0)
 			{
 				UE_LOG(GSPCharacter, Warning, TEXT("Ability Duration: %f"), durations[0])
