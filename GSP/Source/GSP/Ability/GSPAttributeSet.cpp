@@ -139,6 +139,15 @@ void UGSPAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbac
 		// Health loss should go through Damage.
 		SetHealth(FMath::Clamp(GetHealth(), 0.0f, GetMaxHealth()));
 	}
+	else if (Data.EvaluatedData.Attribute == GetHealingAttribute())
+	{
+		// Handle healing.
+		const float LocalHealing = GetHealing();
+		SetHealing(0.f);
+
+		SetHealth(FMath::Clamp(GetHealth() + LocalHealing, 0.0f, GetMaxHealth()));
+		HealthChangeDelegate.Broadcast(GetHealth(), GetHealthNormalized());
+	}
 	else if (Data.EvaluatedData.Attribute == GetShieldRepairAttribute())
 	{
 		// Clear shield repair value
