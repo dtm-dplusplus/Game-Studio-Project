@@ -23,6 +23,7 @@ AGSPProjectile::AGSPProjectile()
 	_DebugMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("DebugMesh"));
 	_DebugMesh->GetRelativeScale3D().Set(0.1f, 0.1f, 0.1f);
 	_DebugMesh->SetNotifyRigidBodyCollision(true);
+	_DebugMesh->SetSimulatePhysics(true);
 	RootComponent = _DebugMesh;
 
 	_ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovementComponent"));
@@ -82,6 +83,4 @@ void AGSPProjectile::RecieveHit(AActor* SelfActor, AActor* OtherActor, FVector N
 			Object->CheckDeath();
 		}
 	}
-
-	Destroy();
 }
