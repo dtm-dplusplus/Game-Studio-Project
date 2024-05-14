@@ -79,7 +79,7 @@ AGSPCharacter::AGSPCharacter(const FObjectInitializer& ObjectInitializer):
 void AGSPCharacter::HealthChanged(const FOnAttributeChangeData& Data)
 {
 	// Check for and handle death
-	if (!IsAlive() && !_AbilitySystemComponent->HasMatchingGameplayTag(_DeadTag))
+	if (!IsAlive())
 	{
 		Death();
 		UE_LOG(LogTemp, Warning, TEXT("AGSPPlayerState::HealthChanged: %s is dead."), *GetName());
@@ -97,6 +97,14 @@ bool AGSPCharacter::IsAlive() const
 void AGSPCharacter::Death()
 {
 	OnDeath();
+}
+
+void AGSPCharacter::ResetState()
+{
+	// Reset health
+	//_AbilitySystemComponent->RemoveLooseGameplayTag(FGameplayTag::RequestGameplayTag("Game.Effect.Cooldown"));
+	_AttributeSet->SetHealth(_AttributeSet->GetMaxHealth());
+	_AttributeSet->HealthChangeDelegate.Broadcast(GetHealth(), GetHealthNormalized());
 }
 
 void AGSPCharacter::FinishDeath()

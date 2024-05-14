@@ -29,14 +29,14 @@ public:
 
 	virtual void BeginPlay() override;
 
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable)
 	void RecieveHit(AActor* SelfActor, AActor* OtherActor, FVector NormalImpulse, const FHitResult& Hit);
 
 protected:
 
 	// Debug Mesh used for visualization
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "GSP|Weapon")
-	TObjectPtr<UStaticMeshComponent> _DebugMesh;
+	TObjectPtr<class USphereComponent> _Collider;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "GSP|Weapon")
 	TObjectPtr<class UProjectileMovementComponent> _ProjectileMovementComponent;
@@ -60,4 +60,7 @@ protected:
 	// Gameplay Damage effect applied when hitting an object
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "GSP|Weapon")
 	TSubclassOf<UGameplayEffect> _SecondaryEffect;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "GSP|Weapon")
+	float _SecondaryEffectDuration = 1.0f;
 };

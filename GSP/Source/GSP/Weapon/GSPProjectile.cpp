@@ -11,6 +11,7 @@
 #include "NiagaraFunctionLibrary.h"
 #include "GSP/Character/GSPPlayerState.h"
 #include "GSP/Character/GSPDestructibleObject.h"
+#include "Components/SphereComponent.h"
 
 DEFINE_LOG_CATEGORY(GSPWeapon)
 
@@ -20,20 +21,18 @@ AGSPProjectile::AGSPProjectile()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	_DebugMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("DebugMesh"));
-	_DebugMesh->GetRelativeScale3D().Set(0.1f, 0.1f, 0.1f);
-	_DebugMesh->SetNotifyRigidBodyCollision(true);
-	_DebugMesh->SetSimulatePhysics(true);
-	RootComponent = _DebugMesh;
+	_Collider = CreateDefaultSubobject<USphereComponent>(TEXT("Collider"));
+	_Collider->SetSphereRadius(5.0f);
+	_Collider->SetNotifyRigidBodyCollision(true);
+	_Collider->SetSimulatePhysics(true);
+	RootComponent = _Collider;
 
 	_ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovementComponent"));
 	_ProjectileMovementComponent->InitialSpeed = 3000.0f;
 	_ProjectileMovementComponent->MaxSpeed = 3500.0f;
 
 	_NiagaraMovementFX = CreateDefaultSubobject<UNiagaraComponent>(TEXT("_NiagaraMovementFX"));
-	_NiagaraMovementFX->SetupAttachment(_DebugMesh);
-
-	OnActorHit.AddDynamic(this, &AGSPProjectile::RecieveHit);
+	_NiagaraMovementFX->SetupAttachment(_Collider);
 }
 
 void AGSPProjectile::BeginPlay()
@@ -57,19 +56,18 @@ void AGSPProjectile::RecieveHit(AActor* SelfActor, AActor* OtherActor, FVector N
 		if (UAbilitySystemComponent* ASC = Character->GetAbilitySystemComponent())
 		{
 			// Primary Effect
-			{
-				const FGameplayEffectContextHandle EffectContext = ASC->MakeEffectContext();
+			const FGameplayEffectContextHandle DamageEffectContext = ASC->MakeEffectContext();
 
-				UE_LOG(GSPWeapon, Warning, TEXT("Applying damage effect to %s"), *Character->GetName());
-				ASC->BP_ApplyGameplayEffectToSelf(_DamageEffect, 0.0, EffectContext);
-			}
+			UE_LOG(GSPWeapon, Warning, TEXT("Applying damage effect to %s"), *Character->GetName());
+			ASC->BP_ApplyGameplayEffectToSelf(_DamageEffect, 0.0, DamageEffectContext);
 			
 			// Secondary Effect
+			if(_SecondaryEffect)
 			{
-				const FGameplayEffectContextHandle EffectContext = ASC->MakeEffectContext();
+				const FGameplayEffectContextHandle SecondaryEffectContext = ASC->MakeEffectContext();
 
 				UE_LOG(GSPWeapon, Warning, TEXT("Applying secondary effect to %s"), *Character->GetName());
-				ASC->BP_ApplyGameplayEffectToSelf(_SecondaryEffect, 0.0, EffectContext);
+				ASC->BP_ApplyGameplayEffectToSelf(_SecondaryEffect, 0.0, SecondaryEffectContext);
 			}
 		}
 	}

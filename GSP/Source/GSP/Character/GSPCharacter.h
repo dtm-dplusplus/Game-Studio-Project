@@ -43,6 +43,9 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, Category = "GSP|GSPCharacter")
 	void OnDeath();
 
+	UFUNCTION(BlueprintCallable, Category = "GSP|GSPCharacter")
+	void ResetState();
+
 	/** Call in BP once death actions are done */
 	UFUNCTION(BlueprintCallable, Category = "GSP|GSPCharacter")
 	virtual void FinishDeath();
