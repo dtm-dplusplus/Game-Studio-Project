@@ -23,6 +23,7 @@ AGSPProjectile::AGSPProjectile()
 	_DebugMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("DebugMesh"));
 	_DebugMesh->GetRelativeScale3D().Set(0.1f, 0.1f, 0.1f);
 	_DebugMesh->SetNotifyRigidBodyCollision(true);
+	_DebugMesh->SetSimulatePhysics(true);
 	RootComponent = _DebugMesh;
 
 	_ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovementComponent"));
@@ -55,10 +56,21 @@ void AGSPProjectile::RecieveHit(AActor* SelfActor, AActor* OtherActor, FVector N
 
 		if (UAbilitySystemComponent* ASC = Character->GetAbilitySystemComponent())
 		{
-			const FGameplayEffectContextHandle EffectContext = ASC->MakeEffectContext();
+			// Primary Effect
+			{
+				const FGameplayEffectContextHandle EffectContext = ASC->MakeEffectContext();
 
-			UE_LOG(GSPWeapon, Warning, TEXT("Applying damage effect to %s"), *Character->GetName());
-			ASC->BP_ApplyGameplayEffectToSelf(_DamageEffect, 0.0, EffectContext);
+				UE_LOG(GSPWeapon, Warning, TEXT("Applying damage effect to %s"), *Character->GetName());
+				ASC->BP_ApplyGameplayEffectToSelf(_DamageEffect, 0.0, EffectContext);
+			}
+			
+			// Secondary Effect
+			{
+				const FGameplayEffectContextHandle EffectContext = ASC->MakeEffectContext();
+
+				UE_LOG(GSPWeapon, Warning, TEXT("Applying secondary effect to %s"), *Character->GetName());
+				ASC->BP_ApplyGameplayEffectToSelf(_SecondaryEffect, 0.0, EffectContext);
+			}
 		}
 	}
 	else if (const AGSPDestructibleObject* Object = Cast<AGSPDestructibleObject>(OtherActor); _DamageEffect && Object)
@@ -71,11 +83,4 @@ void AGSPProjectile::RecieveHit(AActor* SelfActor, AActor* OtherActor, FVector N
 			Object->CheckDeath();
 		}
 	}
-
-	if (_NiagaraHitFX)
-	{
-		UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), _NiagaraHitFX, Hit.ImpactPoint);
-	}
-
-	Destroy();
 }

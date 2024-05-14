@@ -56,4 +56,8 @@ protected:
 	// Gameplay Damage effect applied when hitting an object
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "GSP|Weapon")
 	TSubclassOf<UGameplayEffect> _DamageEffect;
+
+	// Gameplay Damage effect applied when hitting an object
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "GSP|Weapon")
+	TSubclassOf<UGameplayEffect> _SecondaryEffect;
 };
