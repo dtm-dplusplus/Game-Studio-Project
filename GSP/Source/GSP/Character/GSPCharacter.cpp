@@ -105,6 +105,8 @@ void AGSPCharacter::ResetState()
 	//_AbilitySystemComponent->RemoveLooseGameplayTag(FGameplayTag::RequestGameplayTag("Game.Effect.Cooldown"));
 	_AttributeSet->SetHealth(_AttributeSet->GetMaxHealth());
 	_AttributeSet->HealthChangeDelegate.Broadcast(GetHealth(), GetHealthNormalized());
+
+	OnResetState();
 }
 
 void AGSPCharacter::FinishDeath()
