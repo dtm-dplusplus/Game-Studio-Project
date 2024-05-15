@@ -23,6 +23,8 @@ class UInputAction;
 // Declare a new log category
 DECLARE_LOG_CATEGORY_EXTERN(GSPCharacter, Log, All);
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FGSPOnDeath);
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FGSPOnAttributeValueChanged, FGameplayAttribute, Attribute, float,
 	NewValue, float, OldValue);
 
@@ -40,8 +42,11 @@ public:
 
 	virtual void Death();
 
-	UFUNCTION(BlueprintImplementableEvent, Category = "GSP|GSPCharacter")
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "GSP|GSPCharacter")
 	void OnDeath();
+
+	UPROPERTY(BlueprintAssignable, Category = "GSP|GSPCharacter")
+	FGSPOnDeath OnDeathDelegate;
 
 	UFUNCTION(BlueprintCallable, Category = "GSP|GSPCharacter")
 	void ResetState();
