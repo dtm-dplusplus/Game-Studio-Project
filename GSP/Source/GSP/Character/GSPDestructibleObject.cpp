@@ -84,8 +84,8 @@ void AGSPDestructibleObject::BeginPlay()
 		// Health change callbacks
 		//HealthChangedHandler = _AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(_AttributeSet->GetHealthAttribute()).AddUObject(this, &AGSPDestructibleObject::HealthChanged);
 	}
-	_AttributeSet->SetMaxHealth(100.0f);
-	_AttributeSet->SetHealth(100.0f);
+	_AttributeSet->SetMaxHealth(5.0f);
+	_AttributeSet->SetHealth(5.0f);
 }
 
 //handles health changing and death
