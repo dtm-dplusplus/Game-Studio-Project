@@ -96,7 +96,9 @@ bool AGSPCharacter::IsAlive() const
 
 void AGSPCharacter::Death()
 {
+	OnDeathDelegate.Broadcast();
 	OnDeath();
+	ResetState();
 }
 
 void AGSPCharacter::ResetState()

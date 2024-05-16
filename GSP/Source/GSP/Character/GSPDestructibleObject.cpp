@@ -85,7 +85,7 @@ void AGSPDestructibleObject::BeginPlay()
 		//HealthChangedHandler = _AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(_AttributeSet->GetHealthAttribute()).AddUObject(this, &AGSPDestructibleObject::HealthChanged);
 	}
 	_AttributeSet->SetMaxHealth(5.0f);
-	_AttributeSet->SetHealth(5.0f);
+	_AttributeSet->SetHealth(_AttributeSet->GetMaxHealth());
 }
 
 //handles health changing and death
@@ -99,7 +99,6 @@ void AGSPDestructibleObject::CheckDeath() const
 		OnDeath();
 	}
 
-
 	return;
 }
 
@@ -109,7 +108,3 @@ void AGSPDestructibleObject::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 	
 }
-
-
-
-
