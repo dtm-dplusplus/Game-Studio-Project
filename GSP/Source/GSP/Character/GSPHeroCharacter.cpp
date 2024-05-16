@@ -62,8 +62,8 @@ void AGSPHeroCharacter::BeginPlay()
 
 AGSPHeroCharacter::AGSPHeroCharacter(const FObjectInitializer& ObjectInitializer): Super(ObjectInitializer)
 {
-	_AbilityOne = FGameplayTag::RequestGameplayTag("Game.Element.Ability.FireAttack");
-	_AbilityTwo = FGameplayTag::RequestGameplayTag("Game.Element.Ability.RockArmour");
+	_AbilityOne = FGameplayTag::RequestGameplayTag("Game.Ability.Element.FireAttack");
+	_AbilityTwo = FGameplayTag::RequestGameplayTag("Game.Ability.Element.RockArmour");
 
 }
 
