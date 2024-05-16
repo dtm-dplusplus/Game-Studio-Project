@@ -5,8 +5,8 @@
 #include "CoreMinimal.h"
 #include "GSPCharacter.h"
 #include "GSPEnemyCharacter.generated.h"
-
 class UWidgetComponent;
+class UGSPAttributeSet;
 /** Enemy Character class
  * Inherits AbilitySystemComponent from AGSPCharacter
  */
@@ -35,4 +35,7 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GSP|EnemyCharacter", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<AActor> _HeroCharacterRef;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GSP|EnemyCharacter", meta = (AllowPrivateAccess = "true"))
+		int health;
 };

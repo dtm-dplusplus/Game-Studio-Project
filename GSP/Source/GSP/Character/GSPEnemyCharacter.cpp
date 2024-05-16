@@ -32,6 +32,16 @@ void AGSPEnemyCharacter::BeginPlay()
 	{
 		UE_LOG(GSPCharacter, Error, TEXT("No Hero Character found"));
 	}
+	
+
+
+	// Create the attribute set, this replicates by default
+	// automatically registers the AttributeSet with the _AbilitySystemComponent
+	//_AttributeSet = CreateDefaultSubobject<UGSPAttributeSet>(TEXT("AttributeSet"));
+
+	_AttributeSet->SetMaxHealth(health);
+	_AttributeSet->SetHealth(_AttributeSet->GetMaxHealth());
+
 }
 
 void AGSPEnemyCharacter::Tick(float DeltaTime)
